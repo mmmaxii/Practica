@@ -374,7 +374,7 @@ class WaterworldPipeline:
 
 if __name__ == "__main__":
     pipeline = WaterworldPipeline("data_post_pipeline/pipeline_icefrac")
-    pipeline.setup_grid(rmin=1*c.au, rmax=1000*c.au, Nr=300)
+    pipeline.setup_grid(rmin=1*c.au, rmax=500*c.au, Nr=300)
     pipeline.setup_star()
     pipeline.initialize_simulation()
     pipeline.add_volatile_components()
