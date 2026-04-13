@@ -1,0 +1,21 @@
+[from_datadir PA3Py] Leyendo 50 snapshots desde C:\astro\Codigos practica + docs + papers\codigos\data_post_pipeline\pipeline_v3_Sigma_update...
+[from_datadir PA3Py] Especies detectadas: ['CO', 'CO2', 'H2O'] + silicates
+[from_datadir PA3Py] 50 snapshots válidos  |  Nr = 200
+
+r = 3.0 AU
+M_onset = 2.44e-04 Me
+M < M_onset: REGIMEN SAFRONOV
+Rate en M0 = 3.040e+10 g/s
+Rate justo supra M_onset (Pebble) = 1.528e+13 g/s
+
+r = 5.0 AU
+M_onset = 7.22e-04 Me
+M < M_onset: REGIMEN SAFRONOV
+Rate en M0 = 6.460e+09 g/s
+Rate justo supra M_onset (Pebble) = 2.685e+13 g/s
+
+r = 10.0 AU
+M_onset = 5.66e-04 Me
+M < M_onset: REGIMEN SAFRONOV
+Rate en M0 = 6.601e+08 g/s
+Rate justo supra M_onset (Pebble) = 1.548e+12 g/s

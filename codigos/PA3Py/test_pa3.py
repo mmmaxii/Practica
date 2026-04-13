@@ -10,6 +10,6 @@ EMBRYOS = [1.0, 3.0, 5.0, 10.0, 20.0, 30.0]
 print("Cargando modulo 3...")
 pam3 = PebbleAccretionModule3.from_datadir(DATADIR, M_star=1.0)
 print("\nEjecutando integracion de crecimiento...")
-results = pam3.run_growth(EMBRYOS, M0_g=float(pam3.M_EARTH * 1e-4)) # masa semilla ~ masa lunar / 100
+results = pam3.run_growth(EMBRYOS, M0_g=float(pam3.M_EARTH * 1e-2)) # masa semilla ~ masa lunar / 100
 
 pam3.summary(results)
