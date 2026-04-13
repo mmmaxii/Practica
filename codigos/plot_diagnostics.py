@@ -750,6 +750,117 @@ class SnowlineDiagnostics:
         return fig, axes
 
     # =========================================================================
+    # 5b. HOVMÖLLER POR ESPECIE — SigmaDust_X / SigmaGas_X sobre t
+    # =========================================================================
+    def plot_hovmoller_comp(self, quantity='dust', cmap=None,
+                            vmin=None, vmax=None, figsize=None,
+                            percentile_range=(2, 98)):
+        """
+        Diagrama espacio-tiempo de densidad superficial por especie volátil.
+        Lee grid/SigmaDust_X o grid/SigmaGas_X directamente de los HDF5.
+        Añade panel extra de silicatos (polvo_total − Σ_volátiles) si quantity='dust'.
+
+        Parameters
+        ----------
+        quantity : 'dust' | 'gas'
+        cmap     : colormap (default: 'magma' para polvo, 'viridis' para gas)
+        """
+        if not self.volatile_species:
+            print("  [!] No hay SigmaDust/SigmaGas en los HDF5. Omitiendo.")
+            return None, None
+
+        sps     = list(self.volatile_species)
+        add_sil = (quantity == 'dust')
+        n       = len(sps) + (1 if add_sil else 0)
+        if figsize is None:
+            figsize = (11, 3.5 * n)
+
+        _cmap  = cmap or ('magma' if quantity == 'dust' else 'viridis')
+        _pfx   = 'SigmaDust' if quantity == 'dust' else 'SigmaGas'
+        _clbl  = (r'log $\Sigma_{dust}$' if quantity == 'dust'
+                  else r'log $\Sigma_{gas}$')
+
+        t_edges = _log_edges(np.maximum(self.t_yr, 1.0))
+        r_edges = _log_edges(self.r_au)
+
+        fig, axes = plt.subplots(n, 1, figsize=figsize,
+                                 sharex=True, squeeze=False)
+        axes = axes[:, 0]
+
+        dust_total = None
+        if add_sil:
+            dust_total = self.data.dust.Sigma[
+                np.ix_(np.where(self.t_mask)[0], np.arange(self.Nr_full))
+            ][:, self.r_mask].sum(-1)   # (Nt, Nr)
+        vol_total = np.zeros((self.Nt, self.Nr))
+
+        for ax, sp in zip(axes[:len(sps)], sps):
+            fd = getattr(self.data.grid, f"{_pfx}_{sp}", None)
+            if fd is None:
+                ax.set_visible(False); continue
+            arr = np.asarray(fd)[self.t_mask, :][:, self.r_mask]  # (Nt, Nr)
+            if add_sil:
+                vol_total += np.maximum(arr, 0.0)
+            arr  = np.clip(arr, 1e-30, None)
+            logZ = np.log10(arr)
+            valid = arr > 1e-20
+            vlo = vmin if vmin is not None else float(np.percentile(logZ[valid], percentile_range[0]))
+            vhi = vmax if vmax is not None else float(np.percentile(logZ[valid], percentile_range[1]))
+            pcm = ax.pcolormesh(t_edges, r_edges, logZ.T,
+                                cmap=_cmap, vmin=vlo, vmax=vhi,
+                                shading='flat', rasterized=True)
+            fig.colorbar(pcm, ax=ax, pad=0.015, aspect=20).set_label(
+                f"{_clbl} [{sp}] [g cm\u207b\u00b2]", fontsize=8)
+            ax.set_yscale('log'); ax.set_xscale('log')
+            ax.set_ylabel(r'$R$ [AU]', fontsize=9)
+            ax.set_title(COMP_LABELS.get(sp, sp), fontsize=10,
+                         color=COMP_COLORS.get(sp, 'white'), loc='left')
+            for sp_sl, style in SNOWLINE_STYLES.items():
+                r_s = self._get_rsnow_series(sp_sl)
+                if r_s is None: continue
+                rp = np.where((r_s > self.r_au[0]*0.5) & (r_s < self.r_au[-1]), r_s, np.nan)
+                if not np.all(np.isnan(rp)):
+                    ax.plot(self.t_yr, rp, color=style['color'],
+                            ls='--', lw=1.2, alpha=0.8)
+
+        # Panel de silicatos
+        if add_sil and dust_total is not None:
+            ax_sil = axes[len(sps)]
+            sil   = np.maximum(0.0, dust_total - vol_total)
+            sil   = np.clip(sil, 1e-30, None)
+            logZ  = np.log10(sil)
+            valid = sil > 1e-20
+            vlo = float(np.percentile(logZ[valid], percentile_range[0]))
+            vhi = float(np.percentile(logZ[valid], percentile_range[1]))
+            pcm = ax_sil.pcolormesh(t_edges, r_edges, logZ.T,
+                                    cmap='cividis', vmin=vlo, vmax=vhi,
+                                    shading='flat', rasterized=True)
+            fig.colorbar(pcm, ax=ax_sil, pad=0.015, aspect=20).set_label(
+                r'log $\Sigma_{dust}$ [Silicatos] [g cm$^{-2}$]', fontsize=8)
+            ax_sil.set_yscale('log'); ax_sil.set_xscale('log')
+            ax_sil.set_ylabel(r'$R$ [AU]', fontsize=9)
+            ax_sil.set_title('Silicatos', fontsize=10,
+                             color=COMP_COLORS.get('silicates', 'gray'), loc='left')
+            for sp_sl, style in SNOWLINE_STYLES.items():
+                r_s = self._get_rsnow_series(sp_sl)
+                if r_s is None: continue
+                rp = np.where((r_s > self.r_au[0]*0.5) & (r_s < self.r_au[-1]), r_s, np.nan)
+                if not np.all(np.isnan(rp)):
+                    ax_sil.plot(self.t_yr, rp, color=style['color'],
+                                ls='--', lw=1.2, alpha=0.8)
+
+        axes[-1].set_xlabel('Tiempo [a\u00f1os]', fontsize=10)
+        fig.suptitle(
+            (r'Evoluci\u00f3n temporal: $\Sigma_{dust}$ por especie'
+             if quantity == 'dust' else
+             r'Evoluci\u00f3n temporal: $\Sigma_{gas}$ por especie'),
+            fontsize=13, fontweight='bold', y=1.01
+        )
+        fig.tight_layout()
+        self._save(fig, f'hovmoller_comp_{quantity}')
+        return fig, axes
+
+    # =========================================================================
     # 5. DENSIDADES SUPERFICIALES DE GAS — por componente
     # =========================================================================
     def plot_gas_components(self, it=-1, ylim=(1e-5, 1e3),
@@ -967,33 +1078,42 @@ def _extract_dust_sigma(dust_ns, it_abs, r_mask):
 if __name__ == "__main__":
     import sys
 
-    datadir = sys.argv[1] if len(sys.argv) > 1 else "output_test_pipeline"
+    datadir = sys.argv[1] if len(sys.argv) > 1 else \
+        r"data_post_pipeline\pipeline_v3_Sigma_update"
     savedir = sys.argv[2] if len(sys.argv) > 2 else "diagnostics_output"
 
     d = SnowlineDiagnostics(datadir, savedir=savedir, r_trim=0.93, t_min_yr=100.0)
 
-    print("\n[1/6] Hovmöller (eps)…")
+    print("\n[1/8] Hovmöller (eps)…")
     d.plot_hovmoller(quantity="eps")
 
-    print("[2/6] Hovmöller (Sigma_dust)…")
+    print("[2/8] Hovmöller (Sigma_dust)…")
     d.plot_hovmoller(quantity="Sigma_dust")
 
-    print("[3/6] Distribución de tamaño (último snapshot)…")
+    print("[3/8] Distribución de tamaño (último snapshot)…")
     d.plot_size_distribution(it=-1)
 
-    print("[4/6] Pebble flux…")
+    print("[4/8] Pebble flux…")
     d.plot_pebble_flux()
 
-    print("[5/6] Perfiles (η, St, a_max, Σ)…")
+    print("[5/8] Perfiles (η, St, a_max, Σ)…")
     d.plot_profiles(it=-1)
 
-    print("[6a/6] Densidades de gas por componente…")
+    print("[6a/8] Densidades de gas por componente…")
     d.plot_gas_components(it=-1)
 
-    print("[6b/6] Densidades de polvo por componente…")
+    print("[6b/8] Densidades de polvo por componente…")
     d.plot_dust_components(it=-1)
 
-    print("[7/7] Hovmöller R(t) — 3 paneles (Sigma_gas, T, a_max)…")
+    if d.volatile_species:
+        print(f"[7a/8] Hovmöller por especie (SigmaDust) — {d.volatile_species} + silicatos…")
+        d.plot_hovmoller_comp(quantity='dust')
+        print("[7b/8] Hovmöller por especie (SigmaGas)…")
+        d.plot_hovmoller_comp(quantity='gas')
+    else:
+        print("[7/8] Sin SigmaDust_X en HDF5, omitiendo hovmoller_comp.")
+
+    print("[8/8] Hovmöller R(t) — 3 paneles (Sigma_gas, T, a_max)…")
     d.plot_hovmoller_rt(
         quantities=["Sigma_gas", "T", "a_max"],
         t_unit="kyr",

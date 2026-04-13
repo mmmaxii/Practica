@@ -315,3 +315,85 @@ dM = min(Mdot_core * dt, max(0.0, M_iso - M_core))
 Esto garantiza que `M_core` nunca supere `M_iso` independientemente de cuántos snapshots se usen.
 
 > **Nota:** más snapshots → `dt` más pequeño → integración más precisa (menos overshoot en masa). El `M_iso` clamp es una salvaguarda adicional.
+
+---
+
+## 10. Visualización: `plot_diagnostics.py` (actualizado)
+
+### 10.1 Qué cambió
+
+| Método | Antes | Ahora |
+|---|---|---|
+| `plot_gas_components` | Requería `frame.dmp` (solo estado final) | Lee `grid/SigmaGas_X` del HDF5 elegido con `it` |
+| `plot_dust_components` | Requería `frame.dmp` | Lee `grid/SigmaDust_X` del HDF5; silicatos = remanente |
+| `_detect_components` | Solo escaneaba `components.*` del dump | También detecta `SigmaDust_X` en `grid/` → `self.volatile_species` |
+| `plot_hovmoller_comp` | No existía | Nuevo: Hovmöller por especie sobre tiempo |
+| `__main__` | 7 outputs | 8 outputs (añade `hovmoller_comp_dust` y `hovmoller_comp_gas`) |
+
+### 10.2 Uso
+
+```python
+from plot_diagnostics import SnowlineDiagnostics
+
+d = SnowlineDiagnostics(
+    "data_post_pipeline/pipeline_v3_Sigma_update",
+    savedir="figs",
+    r_trim=0.93,
+    t_min_yr=100.0
+)
+
+# Al inicializar imprime automáticamente:
+# → Especies con Sigma en HDF5: ['H2O', 'CO2', 'CO']
+
+# Snapshot específico (ya no necesita frame.dmp):
+d.plot_gas_components(it=-1)    # último snapshot
+d.plot_gas_components(it=0)     # snapshot inicial
+d.plot_dust_components(it=15)   # snapshot intermedio
+
+# Hovmöller por especie — evolución temporal completa:
+d.plot_hovmoller_comp(quantity='dust')   # SigmaDust_H2O / CO2 / CO / silicatos
+d.plot_hovmoller_comp(quantity='gas')    # SigmaGas_H2O / CO2 / CO
+```
+
+### 10.3 Outputs generados por `__main__`
+
+| N° | Archivo PDF | Descripción |
+|---|---|---|
+| 1 | `hovmoller_eps.pdf` | ε = Σ_dust/Σ_gas (espacio-tiempo) |
+| 2 | `hovmoller_Sigma_dust.pdf` | Σ_dust total (espacio-tiempo) |
+| 3 | `size_distribution_it-001.pdf` | Distribución de tamaño (último snapshot) |
+| 4 | `pebble_flux_hovmoller.pdf` | Ṁ_pebble(r, t) en M⊕/yr |
+| 5 | `profiles_it-001.pdf` | η, St, a_max, Σ gas+dust (4 paneles) |
+| 6a | `gas_components_it-001.pdf` | Σ_gas por especie (H₂O, CO₂, CO + total) |
+| 6b | `dust_components_it-001.pdf` | Σ_dust por especie + silicatos remanentes |
+| 7a | `hovmoller_comp_dust.pdf` | Hovmöller de Σ_dust: panel por especie + silicatos |
+| 7b | `hovmoller_comp_gas.pdf` | Hovmöller de Σ_gas: panel por especie |
+| 8 | `hovmoller_rt.pdf` | Σ_gas, T, a_max multi-panel R(t) |
+
+### 10.4 `plot_hovmoller_comp` — descripción del output
+
+Para `quantity='dust'` con `active_species = ['H2O', 'CO2', 'CO']` genera **4 paneles apilados**:
+
+```
+Panel 1: SigmaDust_H2O(r, t)   — cmap magma
+Panel 2: SigmaDust_CO2(r, t)   — cmap magma
+Panel 3: SigmaDust_CO(r, t)    — cmap magma
+Panel 4: Silicatos(r, t)       — cmap cividis
+         = dust_total - SigmaDust_H2O - SigmaDust_CO2 - SigmaDust_CO
+```
+
+- Eje X: tiempo [años, escala log]
+- Eje Y: radio [AU, escala log]
+- Snowlines superpuestas en cada panel (líneas `--` coloreadas)
+- Título del panel en el color de la especie (COMP_COLORS)
+
+### 10.5 Mapeo correcto de índices temporales
+
+El método `_resolve_it(it, Nt)` devuelve un índice en el subconjunto filtrado por `t_min_yr`. Para acceder al HDF5 completo (shape `(Nt_full, Nr)`), se usa:
+
+```python
+it_full = int(np.where(self.t_mask)[0][it_abs])
+sig = np.asarray(field_data)[it_full, self.r_mask]
+```
+
+Esto evita el bug anterior donde `it_abs` se usaba directamente en el array completo cuando `t_min_yr > 0` filtraba snapshots del inicio.

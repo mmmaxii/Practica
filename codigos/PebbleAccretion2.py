@@ -43,7 +43,7 @@ class PebbleAccretionModule:
     # H2O corregido de 1.6e-4 → 9.0e-4 para ser consistente con pipeline_snowlines.py
     # (razón hielo:roca ~ 1:1, Drążkowska & Alibert 2017). Con 1.6e-4 la fracción
     # de agua resultante era ~7%, imposibilitando la clasificación de waterworld.
-    _ABUNDANCES = {'H2O': 9.0e-4, 'CO2': 4.0e-5, 'CO': 8.0e-5, 'silicates': 2.0e-3}
+    _ABUNDANCES = {'H2O':1.6e-4, 'CO2': 4.0e-5, 'CO': 8.0e-5, 'silicates': 2.0e-3}
 
     # ══════════════════════════════════════════════════════════════════════
     # Constructor principal (desde un único HDF5 combinado)
