@@ -46,16 +46,22 @@ El módulo fue probado con los datos de `data_post_pipeline/pipeline_icefrac/`:
 
 ```
 pipeline_snowlines.py
-  └── add_ice_sigma_fields()          ← guarda grid/SigmaIce_X en cada HDF5
-  └── add_snowline_fields()           ← guarda grid/rsnow_X en cada HDF5
-  └── run_integration()               ← genera data_post_pipeline/pipeline_icefrac/
+  ├── add_volatile_components()        ← inyecta H2O, CO2, CO (y más) desde chem.txt
+  │     active_species = ["H2O","CO2","CO"]   ← configurable antes de correr
+  ├── setup_physics()                  ← v_frag(T) dinámico según active_species
+  ├── add_snowline_fields()            ← guarda grid/rsnow_X en cada HDF5
+  ├── add_ice_sigma_fields()           ← guarda grid/SigmaDust_X y grid/SigmaGas_X
+  │     Updater real: comp.dust.Sigma.sum(-1)  → shape (Nr,) por snapshot
+  └── run_integration()               → data_post_pipeline/*/  (Nt HDF5)
 
 PebbleAccretion2.py
   └── PebbleAccretionModule
-        ├── from_datadir(datadir)     ← apila 30 HDF5 en arrays (Nt, Nr, ...)
-        │     Detecta grid/SigmaIce_X (nuevo) o components/*/dust/Sigma (legacy)
-        ├── run_growth(embryos_AU)    ← integra dM/dt para cada embrión
-        │     Composición: normaliza por sum(SigmaIce_X) [partición de unidad]
+        ├── from_datadir(datadir)     ← apila Nt HDF5 en arrays (Nt, Nr, ...)
+        │     Auto-detecta grid/SigmaDust_X  →  volatile species
+        │     Silicatos = dust_total − Σ(SigmaDust_X)  [físicamente correcto]
+        │     Prioridad: SigmaDust_X > SigmaIce_X > components/*/dust/Sigma
+        ├── run_growth(embryos_AU)    ← integra dM/dt con clamp M_iso por paso
+        │     Composición: frac_X = SigmaDust_X / Σ_Y SigmaDust_Y  [real]
         └── summary(results)          ← tabla resumen
 
 test_pebble_accretion.py             ← script de prueba, genera 3 PDFs en figs_pebbles/
@@ -104,17 +110,30 @@ $$\frac{\partial\ln P}{\partial\ln r} = \frac{-2\eta}{(H/r)^2}$$
 
 > Bitsch et al. (2018), A&A 612, A30, Eq. 5 — Lambrechts et al. (2014), A&A 572, A35 (fallback)
 
-### 3.6 Composición química
+### 3.6 Composición química — campos reales por componente
 
-Campo `grid/SigmaIce_X` guardado en cada snapshot HDF5:
+**Campo guardado en cada snapshot HDF5 (método actual):**
+
+```
+grid/SigmaDust_{sp}(r, t)  ←  comp.dust.Sigma.sum(-1)   [g/cm²]  densidad real de polvo sólido
+grid/SigmaGas_{sp}(r, t)   ←  comp.gas.Sigma             [g/cm²]  densidad real de gas
+```
+
+La fracción de cada especie acretada por el embrión se calcula directamente:
+
+$$f_X^{\rm acc}(r,t) = \frac{\Sigma_{\rm dust,X}(r,t)}{\sum_Y \Sigma_{\rm dust,Y}(r,t)}$$
+
+Los silicatos **no tienen su propio field** — se calculan como el remanente:
+
+$$\Sigma_{\rm silicates}(r,t) = \max\!\left(0,\ \Sigma_{\rm dust,total}(r,t) - \sum_X \Sigma_{\rm dust,X}(r,t)\right)$$
+
+**Método anterior (versión `SigmaIce_X`, ya retirado como primario):**
 
 $$\Sigma_{\rm ice,X}(r,t) = f_X \cdot \Sigma_{\rm dust}(r,t) \cdot \theta\!\left[T(r,t) < T_{\rm sub,X}\right]$$
 
-Fracción acretada por cada especie:
+Este método era una estimación: usaba abundancias iniciales fijas y una función escalón en la temperatura, sin reflejar el drift y pile-up real de cada especie. El campo `SigmaDust_X` es el valor real calculado por tripodpy a través de la evolución de conservación de masa del componente.
 
-$$f_X^{\rm acc} = \frac{\Sigma_{\rm ice,X}}{\sum_Y \Sigma_{\rm ice,Y}}$$
-
-Abundancias iniciales (Haynes 1992; Fraser et al. 2001): H₂O: 1.6×10⁻⁴, CO₂: 4×10⁻⁵, CO: 8×10⁻⁵, silicatos: 2×10⁻³
+**Especies soportadas:** H₂O, CO₂, CO (default). Extensible vía `pipeline.active_species`.
 
 ---
 
@@ -205,3 +224,94 @@ python diag_components.py
 | McCloat et al. (2025), arXiv:2509.14101 | Pebble snow, síntesis de población (contexto) |
 | Drążkowska et al. (2022) | Revisión teoría de formación planetaria ALMA/Kepler (contexto) |
 | Mulders et al. (2021) | Filtrado pebbles y masa estelar (futuro) |
+
+---
+
+## 9. Proceso actual con campos reales de componentes
+
+Esta sección describe el flujo completo desde la simulación de disco hasta la acreción, usando los **campos reales** `SigmaDust_{sp}` y `SigmaGas_{sp}` introducidos en `add_ice_sigma_fields()`.
+
+### 9.1 Paso 1 — Simulación del disco (`pipeline_snowlines.py`)
+
+```python
+pipeline = WaterworldPipeline("data_post_pipeline/mi_run")
+pipeline.active_species = ["H2O", "CO2", "CO"]   # modificar según estudio
+pipeline.setup_grid(rmin=1*c.au, rmax=300*c.au, Nr=200)
+pipeline.setup_star()
+pipeline.initialize_simulation()
+pipeline.add_volatile_components()   # inyecta componentes desde chem.txt
+pipeline.setup_physics()             # v_frag(T) dinámico por especie activa
+pipeline.setup_star_evolution()      # R★ contrae de 2→1.5 R☉ en 10 Myr
+pipeline.add_snowline_fields()       # grid/rsnow_{sp} en HDF5
+pipeline.add_ice_sigma_fields()      # grid/SigmaDust_{sp} y SigmaGas_{sp} en HDF5
+pipeline.sim.update()
+pipeline.run_integration(t_end_years=1e5, num_snapshots=50)
+```
+
+**Resultado:** `Nt` archivos HDF5, cada uno con:
+- `gas/Sigma`, `gas/T`, `gas/cs`, `gas/eta`, `gas/nu`
+- `dust/Sigma` (Nr, Nbins), `dust/v/rad`, `dust/St`
+- `grid/rsnow_H2O`, `grid/rsnow_CO2`, `grid/rsnow_CO`
+- `grid/SigmaDust_H2O`, `grid/SigmaDust_CO2`, `grid/SigmaDust_CO`
+- `grid/SigmaGas_H2O`, `grid/SigmaGas_CO2`, `grid/SigmaGas_CO`
+
+### 9.2 Paso 2 — Acreción de pebbles (`PebbleAccretion2.py`)
+
+```python
+from PebbleAccretion2 import PebbleAccretionModule
+
+pam = PebbleAccretionModule.from_datadir("data_post_pipeline/mi_run", M_star=1.0)
+# → detecta: Especies detectadas: ['H2O', 'CO2', 'CO'] + silicates
+# → silicates = dust_total - SigmaDust_H2O - SigmaDust_CO2 - SigmaDust_CO
+
+results = pam.run_growth([1.0, 2.0, 3.0, 5.0, 8.0, 15.0], M0_g=7.3e25)
+pam.summary(results)
+```
+
+### 9.3 Diferencia clave respecto a la versión anterior
+
+| Aspecto | Método antiguo (`SigmaIce_X`) | Método actual (`SigmaDust_X`) |
+|---|---|---|
+| Origen | Estimado: `f_X × Σ_dust × θ(T<T_sub)` | Real: `comp.dust.Sigma.sum(-1)` de tripodpy |
+| Drift por especie | Ignorado | Incluido (tripodpy integra masa por componente) |
+| Pile-up en snowlines | Solo vía θ escalón en T | Dinámico: emerge de condensación/evaporación |
+| Silicatos | Fracción fija `f_sil = 2e-3/total` | Remanente: `Σ_dust_total − Σ_volátiles` |
+| Especies detectadas | Hardcodeadas: H₂O, CO₂, silicatos | Auto-detectadas desde claves HDF5 |
+
+### 9.4 Perfil `v_frag(T)` por especie activa
+
+`setup_physics()` construye el perfil automáticamente a partir de `active_species`:
+
+| Temperatura | Especie | v_frag | Referencia |
+|---|---|---|---|
+| T ≥ 150 K | Silicatos (baseline, siempre) | 100 cm/s | Birnstiel+2012 |
+| T < 150 K | H₂O ice (si activa) | 1000 cm/s | Gundlach & Blum 2015 |
+| T < 70 K | CO₂ ice (si activa) | 500 cm/s | Gundlach+2018 |
+| T < 25 K | CO ice (si activa) | 300 cm/s | Dominik & Tielens 1997 |
+
+Si se elimina una especie de `active_species`, esa banda de temperatura cae al baseline de silicatos (100 cm/s).
+
+El algoritmo aplica los escalones de mayor a menor T_sub (H₂O → CO₂ → CO), de modo que cada `np.where` subsiguiente solo sobreescribe la zona más fría, sin afectar la zona exterior.
+
+### 9.5 Parámetros configurables en `WaterworldPipeline`
+
+| Atributo | Descripción | Default |
+|---|---|---|
+| `active_species` | Lista de especies activas (deben estar en chem.txt) | `["H2O","CO2","CO"]` |
+| `vfrag_params` | `{sp: (T_sub_K, v_frag_cm_s)}` para cada especie | H₂O/CO₂/CO estándar |
+| `vfrag_silicates` | Baseline de silicatos [cm/s] | `100.0` |
+| `M_star_ini` | Masa estelar inicial | `1.0 M☉` |
+| `R_star_ini` | Radio estelar inicial (joven, inflado) | `2.0 R☉` |
+| `T_star_ini` | Temperatura efectiva | `5778 K` |
+
+### 9.6 Fix del integrador de Euler (`M_iso` clamp)
+
+El integrador de `run_growth` usa Euler explícito con los snapshots como pasos de tiempo. Sin control, un `dt` grande podía hacer que `M_core` excediera `M_iso` en un solo paso (overshoot). El fix aplica:
+
+```python
+dM = min(Mdot_core * dt, max(0.0, M_iso - M_core))
+```
+
+Esto garantiza que `M_core` nunca supere `M_iso` independientemente de cuántos snapshots se usen.
+
+> **Nota:** más snapshots → `dt` más pequeño → integración más precisa (menos overshoot en masa). El `M_iso` clamp es una salvaguarda adicional.

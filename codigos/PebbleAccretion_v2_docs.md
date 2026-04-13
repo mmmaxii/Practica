@@ -168,3 +168,96 @@ class PebbleAccretionModule:
 **Resumen:** El código original ya incorpora las recetas centrales de acreción de pebbles, pero las últimas investigaciones sugieren añadir transición suave 2D/3D, efectos dinámicos (excentricidad) y de atmósferas de gas. También enfatizan usar líneas de nieve móviles y multilocales para el seguimiento químico. Las referencias arriba citadas muestran que estas adiciones ponen al modelo al nivel de lo más reciente en la literatura (p.ej. el PPOLs de McCloat y los escenarios de Yap & Stevenson)【98†L34-L41】【95†L42-L49】.  
 
 **Referencias destacadas:** Ormel & Klahr (2010), Lambrechts & Johansen (2012) – fundacionales de la fórmula de acrreción; Bitsch et al. (2018) – masa de aislamiento con turbulencia; McCloat et al. (2024, 2025) – modelos pebble-snow y entrega de agua【93†L62-L69】【98†L34-L41】; Drążkowska et al. (2022) – revisión ALMA/Kepler; Mulders et al. (2021) – filtrado y efecto de masa estelar【96†L138-L147】; Yap & Stevenson (2023) – líneas de hielo en discos circumplanetarios【95†L42-L49】. Estos trabajos representan el estado del arte en las arquitecturas planetarias basadas en acreción de pebbles y evolución de la química del disco.
+
+---
+
+# 6. Registro de cambios aplicados al código
+
+## 6.1 `PebbleAccretion2.py` — Flujo de pebbles compartido en `run_growth()`
+
+**Problema identificado:**  
+El loop anterior iteraba embrión por embrión de forma independiente. Cada embrión veía el flujo de polvo completo del disco (`Mdot_peb_disk`) sin considerar que los embriones exteriores ya habían consumido parte de ese flujo. Esto sobreestimaba la acreción de los embriones interiores y hacía que la suma total de masa acretada por todos los embriones pudiera exceder la masa de pebbles disponible en el disco.
+
+**La física correcta:**  
+Los pebbles derivan radialmente hacia adentro. Un embrión a radio mayor intercepta pebbles antes de que lleguen a radios menores. El flujo disponible en un radio interior es:
+```
+Mdot_avail(r_in) = Mdot_disco(r_in) - Σ consumo de todos los embriones en r' > r_in
+```
+
+**Cambio implementado** (`run_growth`, `PebbleAccretion2.py`):  
+Se reestructuró el loop de dos niveles: el loop **externo** itera snapshots, el loop **interno** itera embriones ordenados de **afuera hacia adentro**. Una variable `flux_consumed` se acumula con el consumo de cada embrión procesado y se resta del flujo disponible para el siguiente:
+
+```python
+flux_consumed = 0.0
+for r_au in sorted(embryos, reverse=True):  # exterior → interior
+    Mdot_peb_avail = max(0.0, Mdot_peb_disk(r) - flux_consumed)
+    Mdot_core = min(_accretion_rate(...), Mdot_peb_avail)
+    flux_consumed += Mdot_core
+```
+
+**Efecto esperado:**  
+Embriones interiores (ej. 3–5 AU) crecen menos porque los exteriores consumen parte del flujo disponible. El resultado es físicamente correcto y conserva la masa de pebbles del disco.
+
+**Referencia:** Ormel & Klahr (2010); Liu & Ormel (2018, A&A 615, A178).
+
+---
+
+## 6.2 `PebbleAccretion2.py` y `pipeline_snowlines.py` — Corrección de abundancia de H₂O
+
+**Problema identificado:**  
+La fracción de masa de H₂O en el polvo sólido estaba hard-codeada al ~7%, imposibilitando la clasificación de waterworld (umbral: >10% de H₂O en la masa total).
+
+**Causa raíz:**  
+Los valores de abundancia provenían de Fraser+2001 como fracciones en número relativas a H, sin conversión de unidades consistente con las del silicato (que estaban en fracciones de masa). El resultado:
+```
+f_H2O = 1.6e-4 / (1.6e-4 + 4e-5 + 8e-5 + 2.0e-3) ≈ 7%  ← siempre
+```
+
+**Cambio aplicado:**
+
+| Archivo | Campo | Antes | Ahora | Justificación |
+|---|---|---|---|---|
+| `pipeline_snowlines.py` | `species_params["H2O"]["abundance"]` | `1.6e-4` | `9.0e-4` | Razón hielo:roca ~ 1:1 (Drążkowska & Alibert 2017) |
+| `PebbleAccretion2.py` | `_ABUNDANCES['H2O']` | `1.6e-4` | `9.0e-4` | Consistencia con pipeline (fallback) |
+
+**Resultado esperado:**
+```
+f_H2O = 9.0e-4 / (9.0e-4 + 4e-5 + 8e-5 + 2.0e-3) ≈ 30%
+```
+Un embrión formado fuera del snowline de H₂O acretaría ~30% de agua → clasificado como waterworld.
+
+**Nota importante:** Este cambio NO afecta la hidrodinámica del disco (controlada por `chem.txt` vía `add_volatile_components`). Solo modifica los campos `SigmaIce_X` usados para estimar la composición de los pebbles acretados.
+
+**Referencias:** Drążkowska & Alibert (2017), A&A 608, A92; Bitsch et al. (2019), A&A 623, A88; Marboeuf et al. (2014), A&A 570, A35.
+
+---
+
+## 6.3 `pipeline_snowlines.py` — Corrección de `v_frag` (Musiolik & Wurm 2019)
+
+**Problema identificado:**  
+El updater anterior asignaba `v_frag = 1000 cm/s` para la zona de hielo de H₂O, basándose en Pinilla et al. (2017) / Aumatell & Wurm (2011). Musiolik & Wurm (2019, ApJ 873, 58) demuestran experimentalmente que a las temperaturas del disco donde el hielo de H₂O es estable (T < 150 K), la energía superficial del hielo es γ ≈ 0.0029 J/m², igual a la de los silicatos. El incremento dramático de pegajosidad que reportan (175–200 K) ocurre por encima de la temperatura de sublimación en el disco.
+
+**Cambio aplicado:**
+
+| Zona de temperatura | Antes | Ahora | Referencia |
+|---|---|---|---|
+| T > 150 K (silicatos) | 100 cm/s | **100 cm/s** | Birnstiel et al. 2012 |
+| 70 < T < 150 K (H₂O ice) | 1000 cm/s | **100 cm/s** | Musiolik & Wurm 2019 |
+| 25 < T < 70 K (CO₂ ice) | 800 cm/s | **500 cm/s** | Gundlach et al. 2018 |
+| T < 25 K (CO ice) | 700 cm/s | **300 cm/s** | Dominik & Tielens 1997 |
+
+**Efecto físico:** El traffic jam en la snowline de H₂O ya no proviene de la diferencia de v_frag. Los pebbles siguen acumulándose en las snowlines por la física de condensación/sublimación (mecanismo de Schoonenberg & Ormel 2017), pero la amplificación artificial por v_frag diferencial se elimina.
+
+---
+
+## 6.4 `pipeline_snowlines.py` — Corrección de `setup_star_evolution()`
+
+**Problemas identificados (tres bugs de valor):**
+
+| Parámetro | Antes | Ahora | Error original |
+|---|---|---|---|
+| `R_ini` | `3.0 R_sun` | `2.0 R_sun` | Inconsistente con `R_star_ini = 2.0 R_sun` en `__init__`; causaba salto discontinuo al activar el updater |
+| `R_fin` | `1.0 R_sun` | `1.5 R_sun` | La estrella llega a ZAMS en ~30 Myr, no dentro del rango de simulación |
+| `t_contract` | `1.0e4 yr` | `1.0e7 yr` | 10,000 años es 5 órdenes de magnitud más rápido que la contracción Kelvin-Helmholtz real (t_KH ~ 10–30 Myr, Hayashi 1961; Siess et al. 2000) |
+
+**Referencias:** Baraffe et al. (2015), A&A 577, A42 — tracks de pre-secuencia principal para 1 M_sun.

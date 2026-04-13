@@ -3,7 +3,7 @@ sys.path.insert(0, r'c:\astro\Codigos practica + docs + papers\codigos')
 from PebbleAccretion2 import PebbleAccretionModule
 import numpy as np
 
-DATADIR = r"C:\astro\Codigos practica + docs + papers\codigos\data_post_pipeline\pipeline_icefrac"
+DATADIR = r"C:\astro\Codigos practica + docs + papers\codigos\data_post_pipeline\pipeline_v3_Sigma_update"
 EMBRYOS = [1.0, 2.0, 3.0, 4.0, 5.0, 8.0, 12.0, 15.0, 20.0, 30.0, 50.0]
 
 pam = PebbleAccretionModule.from_datadir(DATADIR, M_star=1.0)
@@ -21,7 +21,7 @@ for r_target_au in [1, 3, 5, 10, 20, 30, 50]:
     T_tf    = pam.gas['T'][-1, idx_r]
     print(f"  r={r_target_au:5.1f} AU | "
           f"Sigma_peb t0={sig_t0:.2e} tf={sig_tf:.2e} g/cm2 | "
-          f"SigmaIce_H2O t0={ice_t0:.2e} tf={ice_tf:.2e} | "
+          f"SigmaDust_H2O t0={ice_t0:.2e} tf={ice_tf:.2e} | "
           f"T t0={T_t0:.1f} tf={T_tf:.1f} K")
 
 print()
@@ -50,7 +50,7 @@ for sp in ('H2O', 'CO2', 'CO'):
     r_s = pam.rsnow[sp][-1] / pam.AU
     out.append(f"  rsnow_{sp} = {r_s:.2f} AU")
 
-out.append(f"Componentes: {'SigmaIce (HDF5)' if pam._has_comp_sigma else 'Snowline fallback'}")
+out.append(f"Componentes: {'SigmaDust real (HDF5)' if pam._has_comp_sigma else 'Snowline fallback'}")
 out.append(f"t range: {pam.times[0]/3.156e7:.1e} - {pam.times[-1]/3.156e7:.1e} yr")
 
 result_text = "\n".join(out)

@@ -154,7 +154,15 @@ class SnowlineDiagnostics:
             for name in vars(self.data.components):
                 if not name.startswith("_"):
                     self.components.append(name)
+        # Detectar especies volátiles desde los fields SigmaDust_X en HDF5
+        self.volatile_species = []
+        if hasattr(self.data, "grid"):
+            for attr in vars(self.data.grid):
+                if attr.startswith("SigmaDust_") and not attr.startswith("_"):
+                    self.volatile_species.append(attr.replace("SigmaDust_", ""))
         print(f"  → Componentes detectados: {self.components or 'ninguno'}")
+        if self.volatile_species:
+            print(f"  → Especies con Sigma en HDF5: {self.volatile_species}")
 
     def debug_components(self):
         """Imprime la estructura detallada de los componentes en el HDF5 para diagnóstico."""
@@ -623,6 +631,12 @@ class SnowlineDiagnostics:
         Mapeamos:  bin 0 (pequeño) → v[..., 2]  (a1)
                    bin 1 (grande)  → v[..., 4]  (amax)
         """
+
+
+        """
+        Arreglo de fisica:
+        
+        """
         rm, tm = self.r_mask, self.t_mask
         Nr_idx = np.arange(self.Nr_full)
 
@@ -738,83 +752,61 @@ class SnowlineDiagnostics:
     # =========================================================================
     # 5. DENSIDADES SUPERFICIALES DE GAS — por componente
     # =========================================================================
-    def plot_gas_components(self, it=-1,
-                            ylim=(1e-5, 1e3), legend_outside=True,
-                            dumpfile=None):
+    def plot_gas_components(self, it=-1, ylim=(1e-5, 1e3),
+                            legend_outside=True, dumpfile=None):
         """
-        Perfil de Sigma_gas de cada componente volátil activo + gas total.
-
-        IMPORTANTE: Las densidades superficiales por componente NO se guardan
-        en los archivos HDF5 por defecto. Este método requiere:
-          a) El dump file frame.dmp (que si tiene Sigma al momento del pause), O
-          b) Haber activado save=True en el pipeline antes de correr.
-
-        Parameters
-        ----------
-        it : int
-            Índice del snapshot HDF5 para el tiempo en el título (-1 = último).
-        dumpfile : str, optional
-            Ruta al frame.dmp. Si None, busca en datadir/frame.dmp.
+        Perfil de Sigma_gas por componente + total.
+        Fuente primaria: grid/SigmaGas_X en HDF5 (nuevo formato).
+        Fallback: frame.dmp (formato antiguo).
         """
         it_abs  = _resolve_it(it, self.Nt)
+        it_full = int(np.where(self.t_mask)[0][it_abs])
         t_label = f"{self.t_yr[it_abs]:.2e} yr"
-
-        # Intentar leer desde el dump file
-        sim = _load_dumpfile(self.datadir, dumpfile)
-
         fig, ax = plt.subplots(figsize=(9, 5))
-        fallback_colors = list(plt.cm.tab20.colors)
-        idx_color = 0
-        n_plotted = 0
+        fc = list(plt.cm.tab20.colors)
+        ifc, n_plotted = 0, 0
 
-        if sim is None:
-            print("  [!] No se encontró frame.dmp. Para graficar componentes individuales")
-            print("      añade esto al pipeline ANTES de correr la simulación:")
-            print("          sim.components.H2O.gas.Sigma.save = True")
-            print("          sim.components.CO2.gas.Sigma.save = True  (etc.)")
-        else:
-            # Seguir exactamente el patrón de la documentación de tripodpy:
-            #   for name, comp in sim.components.__dict__.items():
-            #       if comp.gas._active:
-            #           plt.loglog(r/au, comp.gas.Sigma, label=name)
-            for name, comp in sim.components.__dict__.items():
-                if name.startswith("_") or comp is None:
-                    continue
-                gas = getattr(comp, "gas", None)
-                if gas is None:
-                    continue
-                if not getattr(gas, "_active", True):
-                    continue
-                sig = getattr(gas, "Sigma", None)
-                if sig is None:
-                    continue
-                sig_r = np.asarray(sig)[self.r_mask]
-                if not np.any(sig_r > 0):
-                    continue
-                color = COMP_COLORS.get(name, fallback_colors[idx_color % len(fallback_colors)])
-                idx_color += 1
-                label = COMP_LABELS.get(name, name)
-                ax.loglog(self.r_au, np.clip(sig_r, 1e-100, None),
-                          color=color, lw=1.5, label=label)
+        if self.volatile_species:
+            for sp in self.volatile_species:
+                fd = getattr(self.data.grid, f"SigmaGas_{sp}", None)
+                if fd is None: continue
+                sig = np.asarray(fd)[it_full, self.r_mask]
+                if not np.any(sig > 0): continue
+                col = COMP_COLORS.get(sp, fc[ifc % len(fc)]); ifc += 1
+                ax.loglog(self.r_au, np.clip(sig, 1e-100, None),
+                          color=col, lw=1.5, label=COMP_LABELS.get(sp, sp))
                 n_plotted += 1
-
+        else:
+            sim = _load_dumpfile(self.datadir, dumpfile)
+            if sim is None:
+                print("  [!] Sin SigmaGas_X en HDF5 ni frame.dmp.")
+            else:
+                for name, comp in sim.components.__dict__.items():
+                    if name.startswith("_") or comp is None: continue
+                    gas = getattr(comp, "gas", None)
+                    if gas is None or not getattr(gas, "_active", True): continue
+                    sig = getattr(gas, "Sigma", None)
+                    if sig is None: continue
+                    sig_r = np.asarray(sig)[self.r_mask]
+                    if not np.any(sig_r > 0): continue
+                    col = COMP_COLORS.get(name, fc[ifc % len(fc)]); ifc += 1
+                    ax.loglog(self.r_au, np.clip(sig_r, 1e-100, None),
+                              color=col, lw=1.5, label=COMP_LABELS.get(name, name))
+                    n_plotted += 1
         if n_plotted == 0:
             print("  [!] Ningún componente de gas graficado.")
-
-        # Gas total desde HDF5 (siempre disponible)
-        Sig_gas_total = self.data.gas.Sigma[it_abs, self.r_mask]
-        ax.loglog(self.r_au, Sig_gas_total, "k--", lw=1.5, label="Gas total")
-
+        ax.loglog(self.r_au, self.data.gas.Sigma[it_full, self.r_mask],
+                  "k--", lw=1.5, label="Gas total")
         ax.set_xlabel("Radio [AU]")
         ax.set_ylabel(r"$\Sigma_{gas}$ [g cm$^{-2}$]")
-        ax.set_title(f"Densidades superficiales de gas por componente  |  t = {t_label}")
+        ax.set_title(f"\u03a3_gas por componente  |  t = {t_label}")
         ax.set_ylim(ylim)
         if legend_outside:
             ax.legend(loc="center left", bbox_to_anchor=(1, 0.5), fontsize=8)
             fig.subplots_adjust(right=0.78)
         else:
             ax.legend(fontsize=8)
-        self._add_snowline_vlines(ax, alpha=0.5)
+        self._add_snowline_vlines(ax, alpha=0.5, it_abs=it_abs)
         fig.tight_layout()
         self._save(fig, f"gas_components_it{it_abs:04d}")
         return fig, ax
@@ -822,85 +814,78 @@ class SnowlineDiagnostics:
     # =========================================================================
     # 6. DENSIDADES SUPERFICIALES DE POLVO — por componente
     # =========================================================================
-    def plot_dust_components(self, it=-1,
-                             ylim=(1e-8, 1e3), legend_outside=True,
-                             dumpfile=None):
+    def plot_dust_components(self, it=-1, ylim=(1e-8, 1e3),
+                             legend_outside=True, dumpfile=None):
         """
-        Perfil de Sigma_dust de cada componente sólido activo.
-        Silicatos en negro como referencia de fondo.
-
-        Requiere el dump file frame.dmp (ver plot_gas_components).
+        Perfil de Sigma_dust por componente. Silicatos = polvo_total - volátiles.
+        Fuente primaria: grid/SigmaDust_X en HDF5.
+        Fallback: frame.dmp.
         """
         it_abs  = _resolve_it(it, self.Nt)
+        it_full = int(np.where(self.t_mask)[0][it_abs])
         t_label = f"{self.t_yr[it_abs]:.2e} yr"
-
-        sim = _load_dumpfile(self.datadir, dumpfile)
-
         fig, ax = plt.subplots(figsize=(9, 5))
-        fallback_colors = list(plt.cm.tab20.colors)
-        idx_color = 0
-        n_plotted = 0
-        sil_data  = None
+        fc = list(plt.cm.tab20.colors)
+        ifc, n_plotted = 0, 0
 
-        if sim is None:
-            print("  [!] No se encontró frame.dmp. Para graficar componentes individuales")
-            print("      añade esto al pipeline ANTES de correr la simulación:")
-            print("          sim.components.H2O.dust.Sigma.save = True")
-            print("          sim.components.CO2.dust.Sigma.save = True  (etc.)")
-        else:
-            # Patrón exacto de la doc de tripodpy:
-            #   for name, comp in sim.components.__dict__.items():
-            #       if comp.dust._active:
-            #           plt.loglog(r/au, comp.dust.Sigma.sum(-1), label=name)
-            for name, comp in sim.components.__dict__.items():
-                if name.startswith("_") or comp is None:
-                    continue
-                dust = getattr(comp, "dust", None)
-                if dust is None:
-                    continue
-                if not getattr(dust, "_active", False):
-                    continue
-                sig = getattr(dust, "Sigma", None)
-                if sig is None:
-                    continue
-                sig = np.asarray(sig)
-                # Sigma puede ser (Nr, Na) o (Nr,)
-                if sig.ndim == 2:
-                    sig_r = sig[self.r_mask, :].sum(-1)
-                else:
-                    sig_r = sig[self.r_mask]
-                if not np.any(sig_r > 0):
-                    continue
-
-                if name == "silicates":
-                    sil_data = sig_r
-                    continue
-
-                color = COMP_COLORS.get(name, fallback_colors[idx_color % len(fallback_colors)])
-                idx_color += 1
-                label = COMP_LABELS.get(name, name)
-                ax.loglog(self.r_au, np.clip(sig_r, 1e-30, None),
-                          color=color, lw=1.5, label=label)
+        if self.volatile_species:
+            dust_total = self.data.dust.Sigma[it_full, self.r_mask, :].sum(-1)
+            vol_total  = np.zeros(self.Nr)
+            for sp in self.volatile_species:
+                fd = getattr(self.data.grid, f"SigmaDust_{sp}", None)
+                if fd is None: continue
+                sig = np.asarray(fd)[it_full, self.r_mask]
+                vol_total += np.maximum(sig, 0.0)
+                col = COMP_COLORS.get(sp, fc[ifc % len(fc)]); ifc += 1
+                ax.loglog(self.r_au, np.clip(sig, 1e-30, None),
+                          color=col, lw=1.5, label=COMP_LABELS.get(sp, sp))
                 n_plotted += 1
-
-            if sil_data is not None:
-                ax.loglog(self.r_au, np.clip(sil_data, 1e-30, None),
+            # Silicatos como remanente
+            sil = np.maximum(0.0, dust_total - vol_total)
+            if np.any(sil > 1e-30):
+                ax.loglog(self.r_au, np.clip(sil, 1e-30, None),
                           "k", lw=2.0, label="Silicatos")
                 n_plotted += 1
-
+        else:
+            sim = _load_dumpfile(self.datadir, dumpfile)
+            sil_data = None
+            if sim is None:
+                print("  [!] Sin SigmaDust_X en HDF5 ni frame.dmp.")
+            else:
+                for name, comp in sim.components.__dict__.items():
+                    if name.startswith("_") or comp is None: continue
+                    dust = getattr(comp, "dust", None)
+                    if dust is None or not getattr(dust, "_active", False): continue
+                    sig = getattr(dust, "Sigma", None)
+                    if sig is None: continue
+                    sig = np.asarray(sig)
+                    sig_r = sig[self.r_mask, :].sum(-1) if sig.ndim == 2 else sig[self.r_mask]
+                    if not np.any(sig_r > 0): continue
+                    if name == "silicates":
+                        sil_data = sig_r; continue
+                    col = COMP_COLORS.get(name, fc[ifc % len(fc)]); ifc += 1
+                    ax.loglog(self.r_au, np.clip(sig_r, 1e-30, None),
+                              color=col, lw=1.5, label=COMP_LABELS.get(name, name))
+                    n_plotted += 1
+                if sil_data is not None:
+                    ax.loglog(self.r_au, np.clip(sil_data, 1e-30, None),
+                              "k", lw=2.0, label="Silicatos")
+                    n_plotted += 1
         if n_plotted == 0:
             print("  [!] Ningún componente de polvo graficado.")
-
+        ax.loglog(self.r_au,
+                  self.data.dust.Sigma[it_full, self.r_mask, :].sum(-1),
+                  "b--", lw=1.5, alpha=0.6, label="Polvo total")
         ax.set_xlabel("Radio [AU]")
         ax.set_ylabel(r"$\Sigma_{dust}$ [g cm$^{-2}$]")
-        ax.set_title(f"Densidades superficiales de polvo por componente  |  t = {t_label}")
+        ax.set_title(f"\u03a3_dust por componente  |  t = {t_label}")
         ax.set_ylim(ylim)
         if legend_outside:
             ax.legend(loc="center left", bbox_to_anchor=(1, 0.5), fontsize=8)
             fig.subplots_adjust(right=0.78)
         else:
             ax.legend(fontsize=8)
-        self._add_snowline_vlines(ax, alpha=0.5)
+        self._add_snowline_vlines(ax, alpha=0.5, it_abs=it_abs)
         fig.tight_layout()
         self._save(fig, f"dust_components_it{it_abs:04d}")
         return fig, ax

@@ -37,10 +37,13 @@ class PebbleAccretionModule:
     M_EARTH = 5.972e27     # g
     AU      = 1.4959787e13 # cm
 
-    # Abundancias iniciales de cada especie (por masa relativa al gas)
-    # Usadas como fallback cuando component.dust.Sigma no está guardado en HDF5.
-    # Valores de Fraser+2001 / Haynes+1992 (igual que chem.txt del pipeline).
-    _ABUNDANCES = {'H2O': 1.6e-4, 'CO2': 4.0e-5, 'CO': 8.0e-5, 'silicates': 2.0e-3}
+    # Abundancias de masa relativa al polvo sólido (solo fallback: se usa cuando
+    # SigmaIce_X no está disponible en el HDF5).
+    #
+    # H2O corregido de 1.6e-4 → 9.0e-4 para ser consistente con pipeline_snowlines.py
+    # (razón hielo:roca ~ 1:1, Drążkowska & Alibert 2017). Con 1.6e-4 la fracción
+    # de agua resultante era ~7%, imposibilitando la clasificación de waterworld.
+    _ABUNDANCES = {'H2O': 9.0e-4, 'CO2': 4.0e-5, 'CO': 8.0e-5, 'silicates': 2.0e-3}
 
     # ══════════════════════════════════════════════════════════════════════
     # Constructor principal (desde un único HDF5 combinado)
@@ -77,11 +80,39 @@ class PebbleAccretionModule:
             'St':    f['dust/St'][:],
         }
 
-        # ── Componentes químicos — shape (Nt, Nr) ────────────────────────
+        # ── Componentes químicos — shape (Nt, Nr) ──────────────────────
+        # Prioridad de lectura:
+        #   1. grid/SigmaDust_{sp}     — campo real del componente (nuevo, add_ice_sigma_fields)
+        #   2. grid/SigmaIce_{sp}      — campo estimado por fracción+theta (prev. versión)
+        #   3. components/{sp}/dust/Sigma — formato original de tripodpy
+        # Silicatos: calculados como polvo_total − Σ(volátiles), no leidos directamente.
         self.comp = {}
-        for sp in ('H2O', 'CO2', 'silicates'):
-            key = f'components/{sp}/dust/Sigma'
-            self.comp[sp] = f[key][:] if key in f else np.zeros((self.Nt, len(self.r)))
+        grid_keys  = list(f['grid'].keys()) if 'grid' in f else []
+        volatile_sps = [k.replace('SigmaDust_', '') for k in grid_keys
+                        if k.startswith('SigmaDust_')]
+        if not volatile_sps:  # fallback: lista estándar
+            volatile_sps = ['H2O', 'CO2', 'CO']
+
+        dust_total_snap = self.dust['Sigma'].sum(-1)   # (Nt, Nr)
+        volatile_total  = np.zeros_like(dust_total_snap)
+
+        for sp in volatile_sps:
+            new_key = f'grid/SigmaDust_{sp}'
+            ice_key = f'grid/SigmaIce_{sp}'
+            old_key = f'components/{sp}/dust/Sigma'
+            if new_key in f:
+                arr = f[new_key][:]
+            elif ice_key in f:
+                arr = f[ice_key][:]
+            elif old_key in f:
+                arr = f[old_key][:]
+            else:
+                arr = np.zeros((self.Nt, len(self.r)))
+            self.comp[sp] = arr
+            volatile_total += arr
+
+        # Silicatos como fracción remanente del polvo total
+        self.comp['silicates'] = np.maximum(0.0, dust_total_snap - volatile_total)
         f.close()
 
         # ── Parámetros estelares y derivados del disco ───────────────────
@@ -133,7 +164,7 @@ class PebbleAccretionModule:
         times_list, rsnow = [], {'H2O': [], 'CO2': [], 'CO': []}
         gas_S, gas_T, gas_cs, gas_eta, gas_nu = [], [], [], [], []
         dust_Sigma, dust_vr, dust_St = [], [], []
-        comp_sigma = {'H2O': [], 'CO2': [], 'silicates': []}
+        comp_sigma = {}   # poblado dinámicamente tras leer el primer archivo
         r_grid = None
 
         for fpath in files:
@@ -146,6 +177,14 @@ class PebbleAccretionModule:
 
                 if r_grid is None:
                     r_grid = f['grid/r'][:]   # (Nr,)
+                    # ── Detectar especies volátiles en el primer archivo ──────
+                    grid_keys = list(f['grid'].keys())
+                    detected  = [k.replace('SigmaDust_', '') for k in grid_keys
+                                 if k.startswith('SigmaDust_')]
+                    vol_sps   = detected if detected else ['H2O', 'CO2', 'CO']
+                    comp_sigma = {sp: [] for sp in vol_sps}
+                    comp_sigma['silicates'] = []
+                    print(f"[from_datadir] Especies detectadas: {vol_sps} + silicates")
 
                 # Gas
                 gas_S.append(f['gas/Sigma'][:])
@@ -164,18 +203,36 @@ class PebbleAccretionModule:
                 dust_vr.append(f['dust/v/rad'][:])         # (Nr, 5)
                 dust_St.append(f['dust/St'][:])            # (Nr, 5)
 
-                # Componentes — SigmaIce_X guardados como grid/SigmaIce_X (nuevo)
-                # o components/*/dust/Sigma (formato antiguo, raramente disponible)
-                for sp in ('H2O', 'CO2', 'silicates'):
-                    # Intentar nuevo formato (add_ice_sigma_fields)
-                    new_key = f'grid/SigmaIce_{sp}'
+                # ── Componentes químicos ───────────────────────────────────────────
+                # Detectar especies volátiles disponibles en el primer archivo
+                if r_grid is not None and not comp_sigma:
+                    grid_keys = list(f['grid'].keys())
+                    detected  = [k.replace('SigmaDust_', '') for k in grid_keys
+                                 if k.startswith('SigmaDust_')]
+                    vol_sps   = detected if detected else ['H2O', 'CO2', 'CO']
+                    comp_sigma = {sp: [] for sp in vol_sps}
+                    comp_sigma['silicates'] = []
+
+                dust_snap    = f['dust/Sigma'][:].sum(-1)   # (Nr,) total polvo
+                vol_total    = np.zeros_like(dust_snap)
+
+                for sp in [k for k in comp_sigma if k != 'silicates']:
+                    new_key = f'grid/SigmaDust_{sp}'
+                    ice_key = f'grid/SigmaIce_{sp}'
                     old_key = f'components/{sp}/dust/Sigma'
                     if new_key in f:
-                        comp_sigma[sp].append(f[new_key][:])
+                        arr = f[new_key][:]
+                    elif ice_key in f:
+                        arr = f[ice_key][:]
                     elif old_key in f:
-                        comp_sigma[sp].append(f[old_key][:])
+                        arr = f[old_key][:]
                     else:
-                        comp_sigma[sp].append(None)
+                        arr = np.zeros(len(r_grid))
+                    comp_sigma[sp].append(arr)
+                    vol_total += arr
+
+                # Silicatos como remanente del polvo total
+                comp_sigma['silicates'].append(np.maximum(0.0, dust_snap - vol_total))
 
         Nt = len(times_list)
         Nr = len(r_grid)
@@ -205,12 +262,12 @@ class PebbleAccretionModule:
             'St':    np.array(dust_St),       # (Nt, Nr, 5)
         }
 
-        # Componentes: verificar si se guardó Sigma
-        has_sigma = all(v[0] is not None for v in comp_sigma.values())
-        if has_sigma:
+        # Componentes: verificar si se guardó algún Sigma
+        if comp_sigma and all(len(v) > 0 for v in comp_sigma.values()):
             obj.comp = {sp: np.stack(comp_sigma[sp]) for sp in comp_sigma}
             obj._has_comp_sigma = True
-            print("[from_datadir] ✅ Componentes dust.Sigma disponibles en HDF5")
+            vol_sps = [s for s in obj.comp if s != 'silicates']
+            print(f"[from_datadir] ✅ Componentes cargados: {vol_sps} + silicates")
         else:
             obj.comp = {}
             obj._has_comp_sigma = False
@@ -294,9 +351,13 @@ class PebbleAccretionModule:
     def _accretion_rate(self, M_core, r_emb, t):
         """
         Ṁ_core [g/s] — régimen de settling con transición suave 2D↔3D.
+        
+        Formation, Evolution, and Dynamics of Young Solar Systems
+        Martin Pessah, Oliver Gressel
+        Seccion 7.2.3 
 
         Física:
-          R_H     = r (M/3M*)^(1/3)                        [radio de Hill]
+          R_H     = r (M/3M*)^(1/3)                     [radio de Hill]
           b_Bondi = √St · GM/Δv²    [Ormel & Klahr 2010, Eq. A9]
           b_Hill  = (St/0.1)^(1/3) R_H  [L&J 2012, Eq. A10]
           R_acc   = min(R_H, b_Bondi, b_Hill)
@@ -373,76 +434,128 @@ class PebbleAccretionModule:
 
     def run_growth(self, embryo_locations_AU, M0_g=1e24):
         """
-        Simula el crecimiento de embriones en las posiciones dadas.
+        Simula el crecimiento simultáneo de todos los embriones sobre el disco
+        pregrabado de tripodpy, con flujo de pebbles compartido correctamente.
+
+        Lógica de flujo compartido (Ormel & Klahr 2010; Liu & Ormel 2018):
+          - Los pebbles derivan RADIALMENTE HACIA ADENTRO.
+          - Un embrión en r_out intercepta pebbles ANTES de que lleguen a r_in < r_out.
+          - El flujo disponible para un embrión = Ṁ_disco(r) - Σ consumo de
+            todos los embriones en r' > r en ese mismo paso de tiempo.
+          - El loop anterior (embrión por embrión) usaba el mismo Ṁ_disco para
+            TODOS, sobreestimando la masa acretada por los embriones interiores.
+
+        Estructura:
+          LOOP externo → snapshots i (disco estático en cada paso)
+            LOOP interno → embriones ordenados de afuera hacia adentro
+              - flux_consumed  se acumula con cada embrión procesado
+              - Mdot_avail(r) = max(0, Mdot_disco(r) - flux_consumed)
 
         Parameters
         ----------
         embryo_locations_AU : list of float — radios [AU].
-        M0_g : float — masa inicial [g].  Default: 1e24 g ≈ 0.17 M_luna.
+        M0_g : float — masa inicial [g]. Default 1e24 g ≈ 0.17 M_luna.
 
         Returns
         -------
-        results : dict {r_AU: ndarray(N,7)}
+        results : dict {r_AU: ndarray(N, 7)}
           Columnas: [t_s, M_core_g, M_H2O_g, M_CO2_g, M_sil_g,
                      r_snow_H2O_AU, M_iso_g]
         """
-        results = {}
-        for r_au in embryo_locations_AU:
-            r_emb  = r_au * self.AU
-            M_core = float(M0_g)
-            M_X    = {sp: 0.0 for sp in self.comp}
-            history = []
+        # ── Ordenar embriones de afuera hacia adentro ─────────────────────────
+        # Los pebbles vienen del disco externo. El embrión más exterior consume
+        # primero; los interiores solo ven el remanente.
+        locs_outer_to_inner = sorted(embryo_locations_AU, reverse=True)
 
-            for i in range(self.Nt):
-                # Masa de aislamiento — detener si se alcanza
-                M_iso = self._isolation_mass(r_emb, i)
-                if M_core >= M_iso:
-                    break
+        # ── Estado compartido de todos los embriones ──────────────────────────
+        M_core   = {r: float(M0_g)              for r in locs_outer_to_inner}
+        M_X      = {r: {sp: 0.0 for sp in self.comp} for r in locs_outer_to_inner}
+        active   = {r: True                      for r in locs_outer_to_inner}
+        histories= {r: []                        for r in locs_outer_to_inner}
 
-                Mdot_peb  = self._pebble_flux(i, r_emb)
-                Mdot_core = self._accretion_rate(M_core, r_emb, i)
-                Mdot_core = min(Mdot_core, Mdot_peb)   # conservación de masa
+        # ── Loop principal: snapshot por snapshot ─────────────────────────────
+        for i in range(self.Nt):
+            dt = float(self.times[i] - (self.times[i-1] if i > 0 else 0.0))
+            if dt <= 0:
+                continue
 
-                dt = float(self.times[i] - (self.times[i-1] if i > 0 else 0.0))
-                if dt <= 0:
+            # Snowline H2O en este tiempo (para el historial)
+            r_snow_AU = float(self.rsnow['H2O'][i]) / self.AU \
+                        if not np.isnan(self.rsnow.get('H2O', [np.nan])[i]) else np.nan
+
+            # Consumo acumulado de pebbles [g/s] por embriones YA procesados
+            # (siempre mayor radio → menor radio, afuera → adentro)
+            flux_consumed = 0.0
+
+            for r_au in locs_outer_to_inner:
+                if not active[r_au]:
                     continue
-                dM = Mdot_core * dt
 
-                # ── Composición química del dM acretado ────────────────────────
+                r_emb = r_au * self.AU
+
+                # ── Masa de aislamiento ────────────────────────────────────────
+                M_iso = self._isolation_mass(r_emb, i)
+                if M_core[r_au] >= M_iso:
+                    active[r_au] = False
+                    continue
+
+                # ── Flujo disponible: disco - lo que consumieron los exteriores ─
+                Mdot_peb_disk  = self._pebble_flux(i, r_emb)
+                Mdot_peb_avail = max(0.0, Mdot_peb_disk - flux_consumed)
+
+                # ── Tasa de acreción ───────────────────────────────────────────
+                Mdot_core_r = self._accretion_rate(M_core[r_au], r_emb, i)
+                Mdot_core_r = min(Mdot_core_r, Mdot_peb_avail)  # limitado por flux real
+
+                dM = Mdot_core_r * dt
+
+                # ── Clamp: M_core no puede superar M_iso en un solo paso ───────
+                # Sin este límite, un dt grande puede acumular masa muy por encima
+                # de M_iso antes de que el check al inicio del loop lo detecte.
+                # Esto hace la integración independiente de la resolución temporal.
+                dM = min(dM, max(0.0, M_iso - M_core[r_au]))
+
+                # Actualizar consumo acumulado para el siguiente embrión (interior)
+                flux_consumed += Mdot_core_r
+
+                # ── Composición química del dM acretado ───────────────────────
                 if self._has_comp_sigma:
-                    # Normalizar por la SUMA de todos los SigmaIce (partición de unidad).
-                    # Esto garantiza fracciones bien definidas incluso cuando el bin
-                    # grande de polvo es pequeño (radios externos, granos no crecidos).
-                    # frac_X = SigmaIce_X / (SigmaIce_H2O + SigmaIce_CO2 + SigmaIce_sil)
                     sig_ice_total = sum(
                         self._interp(self.comp[sp][i], r_emb) for sp in self.comp
                     )
                     if sig_ice_total > 1e-100:
                         for sp in self.comp:
-                            frac     = self._interp(self.comp[sp][i], r_emb)
-                            frac     = np.clip(frac / sig_ice_total, 0.0, 1.0)
-                            M_X[sp] += frac * dM
+                            frac = self._interp(self.comp[sp][i], r_emb)
+                            frac = np.clip(frac / sig_ice_total, 0.0, 1.0)
+                            M_X[r_au][sp] += frac * dM
                     else:
-                        # Todos los SigmaIce son 0 → usar fallback de snowlines
                         fracs = self._comp_from_snowlines(i, r_emb)
                         for sp, frac in fracs.items():
-                            M_X[sp] = M_X.get(sp, 0.0) + frac * dM
+                            M_X[r_au][sp] = M_X[r_au].get(sp, 0.0) + frac * dM
                 else:
-                    # Fallback: estimación física desde posición del snowline
                     fracs = self._comp_from_snowlines(i, r_emb)
                     for sp, frac in fracs.items():
-                        M_X[sp] = M_X.get(sp, 0.0) + frac * dM
+                        M_X[r_au][sp] = M_X[r_au].get(sp, 0.0) + frac * dM
 
-                M_core += dM
+                M_core[r_au] += dM
 
-                r_snow_AU = float(self.rsnow['H2O'][i]) / self.AU \
-                            if not np.isnan(self.rsnow.get('H2O', [np.nan])[i]) else np.nan
-                history.append((self.times[i], M_core,
-                                M_X.get('H2O', 0), M_X.get('CO2', 0),
-                                M_X.get('silicates', 0), r_snow_AU, M_iso))
+                histories[r_au].append((
+                    self.times[i],
+                    M_core[r_au],
+                    M_X[r_au].get('H2O', 0),
+                    M_X[r_au].get('CO2', 0),
+                    M_X[r_au].get('silicates', 0),
+                    r_snow_AU,
+                    M_iso,
+                ))
 
-            results[r_au] = np.array(history) if history else np.empty((0, 7))
+        # ── Reconstruir resultados en el orden original pedido ────────────────
+        results = {
+            r_au: (np.array(histories[r_au]) if histories[r_au] else np.empty((0, 7)))
+            for r_au in embryo_locations_AU
+        }
         return results
+
 
     def summary(self, results):
         """Imprime tabla resumen de composición final."""
