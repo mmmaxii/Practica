@@ -2,7 +2,7 @@
 
 Este módulo es una evolución algorítmica de `PebbleAccretion2.py` que integra estricta y directamente las formulaciones físicas obtenidas en:
 - **Ormel (2017)**: *The Emerging Paradigm of Pebble Accretion*.
-- El **Capítulo de Análisis Comparativo** entregado.
+- **Drążkowska et al. (2023)**: *Planet Formation Theory in the Era of ALMA and Kepler: from Pebbles to Exoplanets*.
 
 ## Diferencias Clave con Versiones Anteriores
 
@@ -30,7 +30,7 @@ $$ \dot{M} = \dot{M}_{\rm 2D} \left( \frac{b_{\rm col}}{b_{\rm col} + h_{\rm peb
 Donde $h_{\rm peb} = \sqrt{\frac{\alpha_T}{\alpha_T + {\rm St}}} h_{\rm gas}$. Esta transición converge al límite 3D natural en discos muy agitados verticalmente.
 
 ### 4. Masa Reguladora de Aislamiento
-Las barreras numéricas y el *overshoot* quedan protegidos por el rediseño más actualizado sobre retroalimentación entre aislamiento del gap y gas proporcionado por Bitsch, modificado bajo la última simplificación analítica de la comparación del **nuevo capítulo de PA**:
+Las barreras numéricas y el *overshoot* quedan protegidos por el rediseño más actualizado sobre retroalimentación entre aislamiento del gap y gas proporcionado por Bitsch, modificado bajo la última simplificación analítica de la comparación de **Drążkowska et al. 2023**:
 $$ M_{\rm iso, peb} = 25 M_{\oplus} \left(\frac{H/r}{0.05}\right)^3 \left(\frac{M_{\star}}{M_{\odot}}\right) $$
 
 ### 5. Consumo y Drift
