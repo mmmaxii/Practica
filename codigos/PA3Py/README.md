@@ -11,7 +11,7 @@ La arquitectura general del código (carga robusta y unificada de los HDF5 gener
 ### 1. Masa Crítica para iniciar la Acreción de Pebbles (*Onset Mass*)
 Aparece una exclusión física para los cuerpos muy livianos. Para poder capturar el gas necesario de arrastre, un cuerpo debe tener una masa mínima. Implementamos:
 
-$$M_{\rm PA\ onset} = {\rm St} \eta^3 M_{\star}$$
+$$M_{ PA\ onset} = {\rm St} \eta^3 M_{\star}$$
 
 *Implementación:* Si $M_{\rm pl} < M_{\rm PA\ onset}$, el modelo no asume tasa nula, sino que cruza al modo de **Acreción de Planetesimales (Safronov)** (Ec. 7.14 de Ormel 2017), asumiendo régimen gas-free balístico bajo densidad propia rocosa. Esto produce que haya una transición real entre el crecimiento primigenio de embriones pequeños al runaway estrepitoso provisto por pebbles.
 
