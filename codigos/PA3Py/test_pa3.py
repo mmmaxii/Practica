@@ -2,15 +2,34 @@ import sys, os
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from PA3Py.PebbleAccretion3 import PebbleAccretionModule3
+from PA3Py.plot_pa3 import PA3Diagnostics
 import numpy as np
+import matplotlib.pyplot as plt
 
 DATADIR = r"C:\astro\Codigos practica + docs + papers\codigos\data_post_pipeline\pipeline_v3_Sigma_update"
-EMBRYOS = np.logspace(0.1, 1, num=100, base=10)
 
+# Grilla densa de embriones — concentrada en la zona de la snowline del H2O
+EMBRYOS = sorted(list(np.logspace(np.log10(1.2), np.log10(10.0), num=40)))
 
-print("Cargando modulo 3...")
+print("Cargando datos del disco...")
 pam3 = PebbleAccretionModule3.from_datadir(DATADIR, M_star=1.0)
-print("\nEjecutando integracion de crecimiento...")
-results = pam3.run_growth(EMBRYOS, M0_g=float(pam3.M_EARTH * 1e-3)) # masa semilla ~ masa lunar / 100
 
+print("\nEjecutando integracion de crecimiento...")
+results = pam3.run_growth(EMBRYOS, M0_g=float(pam3.M_EARTH * 1e-3))
 pam3.summary(results)
+
+# ── Diagnosticos ───────────────────────────────────────────────────────────────
+print("\nGenerando plots...")
+diag = PA3Diagnostics(pam3, results, savedir="figs_pa3")
+
+# Embriones representativos para plots temporales (composicion)
+r_comp = [r for r in EMBRYOS if any(
+    abs(r - x) < 0.15 for x in [1.5, 2.2, 3.5, 7.0]
+)][:4]
+
+diag.plot_waterworld_map()
+diag.plot_with_disk_temperature()
+diag.plot_composition(r_selected=r_comp)
+diag.plot_hovmoller_mass()
+
+plt.show()
