@@ -317,22 +317,25 @@ class PebbleAccretionModule3:
         return results
 
     def summary(self, results):
-        """Imprime tabla resumen de composición final."""
-        print(f"\n{'─'*70}")
-        print(f"{'r [AU]':>8} {'M [M⊕]':>9} {'H₂O%':>7} {'CO₂%':>7} "
-              f"{'Sil%':>7}  Tipo")
-        print(f"{'─'*70}")
+        """Imprime tabla resumen de composicion final con M_iso."""
+        SEP = '-' * 80
+        print(f"\n{SEP}")
+        print(f"{'r [AU]':>8} {'M [ME]':>9} {'M_iso [ME]':>11} "
+              f"{'H2O%':>7} {'CO2%':>7} {'Sil%':>7}  Tipo")
+        print(SEP)
         for r_au, hist in results.items():
             if len(hist) == 0:
-                print(f"{r_au:>8.2f}  — sin acreción")
+                print(f"{r_au:>8.2f}  -- sin acrecion")
                 continue
-            _, M, H2O, CO2, sil, _, _ = hist[-1]
+            _, M, H2O, CO2, sil, _, M_iso = hist[-1]
             f_H2O = 100 * H2O / (M + 1e-30)
             f_CO2 = 100 * CO2 / (M + 1e-30)
             f_sil = 100 * sil / (M + 1e-30)
-            tipo  = "🌊 Waterworld" if f_H2O > 10 else "🪨 Rocoso"
-            print(f"{r_au:>8.2f}  {M/self.M_EARTH:>8.3f}  {f_H2O:>6.1f}  "
+            tipo  = "[W] Waterworld" if f_H2O > 10 else "[R] Rocoso"
+            print(f"{r_au:>8.2f}  {M/self.M_EARTH:>8.3f}  "
+                  f"{M_iso/self.M_EARTH:>10.2f}  {f_H2O:>6.1f}  "
                   f"{f_CO2:>6.1f}  {f_sil:>6.1f}  {tipo}")
-        print(f"{'─'*70}\n")
+        print(f"{SEP}\n")
+
 
 
