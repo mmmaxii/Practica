@@ -17,6 +17,7 @@ Unidades internas: CGS (g, cm, s).
 
 import h5py
 import numpy as np
+import dustpy.constants as c
 
 class PebbleAccretionModule3:
     """
@@ -26,10 +27,10 @@ class PebbleAccretionModule3:
     """
 
     # ── Constantes físicas (CGS) ──────────────────────────────────────────
-    G_CGS   = 6.6743e-8    # cm³ g⁻¹ s⁻²
-    M_SUN   = 1.9884e33    # g
-    M_EARTH = 5.9722e27    # g
-    AU      = 1.4959787e13 # cm
+    G_CGS   = c.G    # cm³ g⁻¹ s⁻²
+    M_SUN   = c.M_sun    # g
+    M_EARTH = c.M_earth    # g
+    AU      = c.au # cm
 
     _ABUNDANCES = {'H2O': 1.6e-4, 'CO2': 4.0e-5, 'CO': 8.0e-5, 'silicates': 2.0e-3}
 
@@ -49,6 +50,7 @@ class PebbleAccretionModule3:
         times_list, rsnow = [], {'H2O': [], 'CO2': [], 'CO': []}
         gas_S, gas_T, gas_cs, gas_eta, gas_nu = [], [], [], [], []
         dust_Sigma, dust_vr, dust_St = [], [], []
+        OmegaK_list = []   # ← leemos del HDF5 directamente
         comp_sigma = {}   
         r_grid = None
 
@@ -63,11 +65,12 @@ class PebbleAccretionModule3:
                 if r_grid is None:
                     r_grid = f['grid/r'][:]
                     grid_keys = list(f['grid'].keys())
+                    # Detectar TODAS las especies con SigmaDust_X, incluyendo silicates
                     detected  = [k.replace('SigmaDust_', '') for k in grid_keys if k.startswith('SigmaDust_')]
-                    vol_sps   = detected if detected else ['H2O', 'CO2', 'CO']
-                    comp_sigma = {sp: [] for sp in vol_sps}
-                    comp_sigma['silicates'] = []
-                    print(f"[from_datadir PA3Py] Especies detectadas: {vol_sps} + silicates")
+                    all_sps   = detected if detected else ['H2O', 'CO2', 'CO']
+                    comp_sigma = {sp: [] for sp in all_sps}
+                    print(f"[from_datadir PA3Py] Especies detectadas (volátiles + silicatos): {all_sps}")
+                    print(f"[from_datadir PA3Py] Denominador de fracciones: dust.Sigma.sum(-1)")
 
                 # Gas
                 gas_S.append(f['gas/Sigma'][:])
@@ -80,25 +83,20 @@ class PebbleAccretionModule3:
                     key = f'grid/rsnow_{sp}'
                     rsnow[sp].append(float(f[key][()]) if key in f else np.nan)
 
-                # Dust
+                # Dust  — guardamos Sigma completo (Nt, Nr, 2)
                 dust_Sigma.append(f['dust/Sigma'][:])
                 dust_vr.append(f['dust/v/rad'][:])
                 dust_St.append(f['dust/St'][:])
 
-                # Química
-                dust_snap = f['dust/Sigma'][:].sum(-1)
-                vol_total = np.zeros_like(dust_snap)
+                # OmegaK — leer directamente del HDF5 (shape Nr,)
+                if 'grid/OmegaK' in f:
+                    OmegaK_list.append(f['grid/OmegaK'][:])
 
-                for sp in [k for k in comp_sigma if k != 'silicates']:
+                # Química: todas las especies (volátiles + silicatos)
+                for sp in comp_sigma:
                     new_key = f'grid/SigmaDust_{sp}'
-                    if new_key in f:
-                        arr = f[new_key][:]
-                    else:
-                        arr = np.zeros(len(r_grid))
+                    arr = f[new_key][:] if new_key in f else np.zeros(len(r_grid))
                     comp_sigma[sp].append(arr)
-                    vol_total += arr
-
-                comp_sigma['silicates'].append(np.maximum(0.0, dust_snap - vol_total))
 
         Nt = len(times_list)
         Nr = len(r_grid)
@@ -123,20 +121,36 @@ class PebbleAccretionModule3:
             'nu':    np.array(gas_nu),
         }
         obj.dust = {
-            'Sigma': np.array(dust_Sigma),
-            'vr':    np.array(dust_vr),
-            'St':    np.array(dust_St),
+            'Sigma':       np.array(dust_Sigma),         # (Nt, Nr, 2)
+            'Sigma_total': np.array(dust_Sigma).sum(-1), # (Nt, Nr)  ← denominador de fracciones
+            'vr':          np.array(dust_vr),
+            'St':          np.array(dust_St),
         }
 
         if comp_sigma and all(len(v) > 0 for v in comp_sigma.values()):
-            obj.comp = {sp: np.stack(comp_sigma[sp]) for sp in comp_sigma}
+            obj.comp = {sp: np.stack(comp_sigma[sp]) for sp in comp_sigma}  # (Nt, Nr) por especie
             obj._has_comp_sigma = True
+            # Todas las especies detectadas (volátiles + silicatos)
+            obj._volatile_sps = [sp for sp in comp_sigma]
+            print(f"[from_datadir PA3Py] comp.keys = {list(obj.comp.keys())}")
         else:
             obj.comp = {}
             obj._has_comp_sigma = False
+            obj._volatile_sps = []
 
-        obj.Omega_K = np.sqrt(obj.G_CGS * obj.M_star / obj.r**3)
-        obj.H_gas   = obj.gas['cs'] / obj.Omega_K[np.newaxis, :]
+        # OmegaK — usar datos del HDF5 si existen, si no calcular analíticamente
+        if OmegaK_list:
+            obj.Omega_K = np.array(OmegaK_list)   # (Nt, Nr) — del HDF5 (data.grid.OmegaK)
+            obj._omegaK_2d = True
+            print(f"[from_datadir PA3Py] OmegaK: leído del HDF5 — shape {obj.Omega_K.shape}")
+            # H_gas(Nt, Nr) usando OmegaK(Nt, Nr)
+            obj.H_gas = obj.gas['cs'] / obj.Omega_K
+        else:
+            # Fallback analítico (1D, sin variación temporal)
+            obj.Omega_K = np.sqrt(obj.G_CGS * obj.M_star / obj.r**3)  # (Nr,)
+            obj._omegaK_2d = False
+            print("[from_datadir PA3Py] OmegaK: calculado analíticamente (fallback)")
+            obj.H_gas = obj.gas['cs'] / obj.Omega_K[np.newaxis, :]    # broadcast (Nt, Nr)
         with np.errstate(divide='ignore', invalid='ignore'):
             alpha_raw = obj.gas['nu'] / (obj.gas['cs'] * obj.H_gas)
         obj.alpha = np.clip(np.where(np.isfinite(alpha_raw), alpha_raw, 1e-3), 1e-5, 1e-1)
@@ -171,7 +185,9 @@ class PebbleAccretionModule3:
         eta   = I(self.gas['eta'])
         St    = self._interp(self.dust['St'][t, :, -1], r_emb)
         H_gas = self._interp(self.H_gas[t], r_emb)
-        Omega = float(np.interp(np.log(r_emb), np.log(self.r), self.Omega_K))
+        # OmegaK: (Nt, Nr) si viene del HDF5, (Nr,) si es fallback analítico
+        omega_1d = self.Omega_K[t] if self._omegaK_2d else self.Omega_K
+        Omega = float(np.interp(np.log(r_emb), np.log(self.r), omega_1d))
         v_K   = Omega * r_emb
         v_hw  = eta * v_K
         return dict(Sigma_peb=Sigma_peb, eta=eta, alpha=I(self.alpha),
@@ -287,12 +303,19 @@ class PebbleAccretionModule3:
                 flux_consumed += Mdot_core_r
 
                 if self._has_comp_sigma:
-                    sig_ice_total = sum(self._interp(self.comp[sp][i], r_emb) for sp in self.comp)
-                    if sig_ice_total > 1e-100:
-                        for sp in self.comp:
-                            frac = self._interp(self.comp[sp][i], r_emb)
-                            frac = np.clip(frac / sig_ice_total, 0.0, 1.0)
-                            M_X[r_au][sp] += frac * dM
+                    # Denominador = Sigma_dust_total de tripodpy (suma sobre bins)
+                    # Esto es físicamente correcto: el pebble que cae tiene la
+                    # composición local del polvo, no solo de los volátiles.
+                    sig_dust_total = self._interp(self.dust['Sigma_total'][i], r_emb)
+
+                    if sig_dust_total > 1e-100:
+                        for sp in self._volatile_sps:
+                            sig_sp = self._interp(self.comp[sp][i], r_emb)
+                            # f_X = Sigma_X / Sigma_dust_total
+                            frac = np.clip(sig_sp / sig_dust_total, 0.0, 1.0)
+                            M_X[r_au][sp] = M_X[r_au].get(sp, 0.0) + frac * dM
+                        # silicatos implícitos: lo que no se asignó a volátiles
+                        # queda en M_core pero no en M_X (se recupera en summary)
                     else:
                         fracs = self._comp_from_snowlines(i, r_emb)
                         for sp, frac in fracs.items():
@@ -319,23 +342,33 @@ class PebbleAccretionModule3:
     def summary(self, results):
         """Imprime tabla resumen de composicion final con M_iso."""
         SEP = '-' * 80
+        vol_sps = self._volatile_sps if self._has_comp_sigma else ['H2O', 'CO2']
+        header_sps = '  '.join(f'{sp+"%":>7}' for sp in vol_sps)
         print(f"\n{SEP}")
-        print(f"{'r [AU]':>8} {'M [ME]':>9} {'M_iso [ME]':>11} "
-              f"{'H2O%':>7} {'CO2%':>7} {'Sil%':>7}  Tipo")
+        print(f"{'r [AU]':>8} {'M [ME]':>9} {'M_iso [ME]':>11}  {header_sps}  {'Sil%':>7}  Tipo")
         print(SEP)
         for r_au, hist in results.items():
             if len(hist) == 0:
                 print(f"{r_au:>8.2f}  -- sin acrecion")
                 continue
-            _, M, H2O, CO2, sil, _, M_iso = hist[-1]
-            f_H2O = 100 * H2O / (M + 1e-30)
-            f_CO2 = 100 * CO2 / (M + 1e-30)
-            f_sil = 100 * sil / (M + 1e-30)
-            tipo  = "[W] Waterworld" if f_H2O > 10 else "[R] Rocoso"
+            _, M, *_, M_iso = hist[-1]
+            M_total = M
+            row_vals = {}
+            for j, sp in enumerate(vol_sps):
+                # columna j+2 en historial: H2O=2, CO2=3, ...
+                col = 2 + j
+                M_sp = hist[-1][col] if col < len(hist[-1]) else 0.0
+                row_vals[sp] = 100 * M_sp / (M_total + 1e-30)
+            # Silicatos = masa no asignada a volátiles
+            M_vol = sum(hist[-1][2 + j] for j in range(len(vol_sps)) if 2 + j < len(hist[-1]))
+            f_sil  = 100 * max(0.0, M_total - M_vol) / (M_total + 1e-30)
+            f_h2o  = row_vals.get('H2O', 0.0)
+            tipo   = "[W] Waterworld" if f_h2o > 10 else "[R] Rocoso"
+            vals_str = '  '.join(f"{row_vals.get(sp, 0.0):>6.1f}" for sp in vol_sps)
             print(f"{r_au:>8.2f}  {M/self.M_EARTH:>8.3f}  "
-                  f"{M_iso/self.M_EARTH:>10.2f}  {f_H2O:>6.1f}  "
-                  f"{f_CO2:>6.1f}  {f_sil:>6.1f}  {tipo}")
+                  f"{M_iso/self.M_EARTH:>10.2f}  {vals_str}  {f_sil:>6.1f}  {tipo}")
         print(f"{SEP}\n")
+
 
 
 

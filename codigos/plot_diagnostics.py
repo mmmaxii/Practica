@@ -278,13 +278,30 @@ class SnowlineDiagnostics:
             result.append(float(self.r_au[idx[0]]) if idx.size > 0 else np.nan)
         return np.array(result)
 
+    def _active_snowlines(self):
+        """
+        Devuelve el subconjunto de SNOWLINE_STYLES cuyo field rsnow_X
+        existe en los datos HDF5 cargados.
+
+        Esto garantiza que solo aparecen los snowlines de las especies
+        realmente simuladas (las que tenian active_species activo en el
+        pipeline). Evita lineas fantasma de CO o CO2 cuando solo se
+        simulo H2O, por ejemplo.
+        """
+        active = {}
+        for name, style in SNOWLINE_STYLES.items():
+            field_name = f"rsnow_{name}"
+            if getattr(self.data.grid, field_name, None) is not None:
+                active[name] = style
+        return active
+
     def _add_snowline_vlines(self, ax, alpha=0.6, it_abs=None):
         """
         Dibuja líneas verticales en la posición del snowline para cada especie.
         Usa el snapshot correcto (it_abs), NO siempre el primero.
         Para plots de snapshot (perfiles, distribución de tamaño, componentes).
         """
-        for name, style in SNOWLINE_STYLES.items():
+        for name, style in self._active_snowlines().items():
             r_snow = self._get_rsnow_at(name, it_abs)
             # Permitir snowlines muy cerca del borde interior (H2O puede estar a ~1 AU)
             if r_snow is None or r_snow < self.r_au[0] * 0.5 or r_snow >= self.r_au[-1]:
@@ -298,7 +315,7 @@ class SnowlineDiagnostics:
         Fallback estático: dibuja axhline en r_snow para plots con r en Y.
         Solo se usa cuando _add_snowline_curves no tiene datos disponibles.
         """
-        for name, style in SNOWLINE_STYLES.items():
+        for name, style in self._active_snowlines().items():
             r_snow = self._get_rsnow_at(name, it_abs)
             if r_snow is None or r_snow < self.r_au[0] * 0.5 or r_snow >= self.r_au[-1]:
                 continue
@@ -313,7 +330,7 @@ class SnowlineDiagnostics:
         Para plots 2D: ejes radio (X) vs tiempo (Y).
         """
         any_plotted = False
-        for name, style in SNOWLINE_STYLES.items():
+        for name, style in self._active_snowlines().items():
             r_series = self._get_rsnow_series(name)
             if r_series is None:
                 continue
@@ -382,6 +399,8 @@ class SnowlineDiagnostics:
         fig.colorbar(pcm, ax=ax, pad=0.02, label=label_cb)
 
         ax.set_xscale("log"); ax.set_yscale("log")
+        ax.set_xlim(float(np.maximum(self.t_yr[0], 1.0)), float(self.t_yr[-1]))
+        ax.set_ylim(float(self.r_au[0]), float(self.r_au[-1]))
         ax.set_xlabel("Tiempo [años]")
         ax.set_ylabel("Radio [AU]")
         ax.set_title(title, pad=8)
@@ -513,10 +532,11 @@ class SnowlineDiagnostics:
             ax.set_yscale("log")
             if t_log:
                 ax.set_xscale("log")
+            ax.set_ylim(float(self.r_au[0]), float(self.r_au[-1]))
             ax.set_ylabel(r"$R$ [AU]", fontsize=10)
 
             # Snowlines como líneas HORIZONTALES r_snow(t)
-            for sp_name, style in SNOWLINE_STYLES.items():
+            for sp_name, style in self._active_snowlines().items():
                 r_series = self._get_rsnow_series(sp_name)
                 if r_series is None:
                     continue
@@ -530,6 +550,13 @@ class SnowlineDiagnostics:
                             label=style["label"])
 
         axes[-1].set_xlabel(f"$t$ [{t_unit}]", fontsize=10)
+        if t_log:
+            axes[-1].set_xlim(
+                float(np.maximum(t_plot[0], t_plot[t_plot > 0].min())),
+                float(t_plot[-1])
+            )
+        else:
+            axes[-1].set_xlim(float(t_plot[0]), float(t_plot[-1]))
 
         handles, lbls = axes[-1].get_legend_handles_labels()
         if handles:
@@ -679,6 +706,8 @@ class SnowlineDiagnostics:
                      label=r"log$_{10}$ $|\dot{M}_{pebble}|$ [$M_\oplus$ yr$^{-1}$]")
 
         ax.set_xscale("log"); ax.set_yscale("log")
+        ax.set_xlim(float(np.maximum(self.t_yr[0], 1.0)), float(self.t_yr[-1]))
+        ax.set_ylim(float(self.r_au[0]), float(self.r_au[-1]))
         ax.set_xlabel("Tiempo [años]")
         ax.set_ylabel("Radio [AU]")
         ax.set_title(r"Flujo másico de Pebbles $\dot{M}_{pebble}(r, t)$", pad=8)
@@ -812,10 +841,12 @@ class SnowlineDiagnostics:
             fig.colorbar(pcm, ax=ax, pad=0.015, aspect=20).set_label(
                 f"{_clbl} [{sp}] [g cm\u207b\u00b2]", fontsize=8)
             ax.set_yscale('log'); ax.set_xscale('log')
+            ax.set_xlim(float(np.maximum(self.t_yr[0], 1.0)), float(self.t_yr[-1]))
+            ax.set_ylim(float(self.r_au[0]), float(self.r_au[-1]))
             ax.set_ylabel(r'$R$ [AU]', fontsize=9)
             ax.set_title(COMP_LABELS.get(sp, sp), fontsize=10,
                          color=COMP_COLORS.get(sp, 'white'), loc='left')
-            for sp_sl, style in SNOWLINE_STYLES.items():
+            for sp_sl, style in self._active_snowlines().items():
                 r_s = self._get_rsnow_series(sp_sl)
                 if r_s is None: continue
                 rp = np.where((r_s > self.r_au[0]*0.5) & (r_s < self.r_au[-1]), r_s, np.nan)
@@ -838,10 +869,12 @@ class SnowlineDiagnostics:
             fig.colorbar(pcm, ax=ax_sil, pad=0.015, aspect=20).set_label(
                 r'log $\Sigma_{dust}$ [Silicatos] [g cm$^{-2}$]', fontsize=8)
             ax_sil.set_yscale('log'); ax_sil.set_xscale('log')
+            ax_sil.set_xlim(float(np.maximum(self.t_yr[0], 1.0)), float(self.t_yr[-1]))
+            ax_sil.set_ylim(float(self.r_au[0]), float(self.r_au[-1]))
             ax_sil.set_ylabel(r'$R$ [AU]', fontsize=9)
             ax_sil.set_title('Silicatos', fontsize=10,
                              color=COMP_COLORS.get('silicates', 'gray'), loc='left')
-            for sp_sl, style in SNOWLINE_STYLES.items():
+            for sp_sl, style in self._active_snowlines().items():
                 r_s = self._get_rsnow_series(sp_sl)
                 if r_s is None: continue
                 rp = np.where((r_s > self.r_au[0]*0.5) & (r_s < self.r_au[-1]), r_s, np.nan)
@@ -1001,6 +1034,82 @@ class SnowlineDiagnostics:
         self._save(fig, f"dust_components_it{it_abs:04d}")
         return fig, ax
 
+    # =========================================================================
+    # run — lanza todos los diagnósticos para un snapshot dado
+    # =========================================================================
+    def run(self, snap_num: int = -1):
+        """
+        Genera todos los plots de diagnóstico para el snapshot ``snap_num``.
+
+        Es el punto de entrada más sencillo del módulo: solo necesitas el
+        número de snapshot y el resto se configura automáticamente.
+
+        Parameters
+        ----------
+        snap_num : int
+            Índice del snapshot dentro del subconjunto temporal válido
+            (snapshots con t ≥ t_min_yr).  0 = primero,  -1 = último.
+            Soporta índices negativos al estilo Python.
+
+        Returns
+        -------
+        dict
+            Diccionario con las figuras generadas, indexadas por nombre corto.
+            Útil si quieres manipular las figuras después.
+
+        Examples
+        --------
+        >>> d = SnowlineDiagnostics("output_test_pipeline", savedir="figs")
+        >>> figs = d.run(snap_num=10)
+        >>> plt.show()
+        """
+        it_abs  = _resolve_it(snap_num, self.Nt)
+        t_label = f"{self.t_yr[it_abs]:.2e} yr"
+        print(f"\n{'='*62}")
+        print(f"  run(snap_num={snap_num})  →  índice={it_abs}  |  t = {t_label}")
+        print(f"{'='*62}\n")
+
+        figs = {}
+
+        print("[1/8] Hovmöller ε (relación polvo/gas)…")
+        figs["hovmoller_eps"]        = self.plot_hovmoller(quantity="eps")
+
+        print("[2/8] Hovmöller Σ_dust…")
+        figs["hovmoller_Sigma_dust"] = self.plot_hovmoller(quantity="Sigma_dust")
+
+        print(f"[3/8] Distribución de tamaño de grano  (snap {it_abs})…")
+        figs["size_dist"]            = self.plot_size_distribution(it=snap_num)
+
+        print("[4/8] Pebble flux Ṁ(r, t)…")
+        figs["pebble_flux"]          = self.plot_pebble_flux()
+
+        print(f"[5/8] Perfiles de disco  (snap {it_abs})…")
+        figs["profiles"]             = self.plot_profiles(it=snap_num)
+
+        print(f"[6a/8] Σ_gas por componente  (snap {it_abs})…")
+        figs["gas_components"]       = self.plot_gas_components(it=snap_num)
+
+        print(f"[6b/8] Σ_dust por componente  (snap {it_abs})…")
+        figs["dust_components"]      = self.plot_dust_components(it=snap_num)
+
+        if self.volatile_species:
+            print(f"[7a/8] Hovmöller por especie (SigmaDust)  — {self.volatile_species}…")
+            figs["hovmoller_comp_dust"] = self.plot_hovmoller_comp(quantity="dust")
+            print("[7b/8] Hovmöller por especie (SigmaGas)…")
+            figs["hovmoller_comp_gas"]  = self.plot_hovmoller_comp(quantity="gas")
+        else:
+            print("[7/8] Sin SigmaDust_X en HDF5, omitiendo hovmoller_comp.")
+
+        print("[8/8] Hovmöller R(t) — 3 paneles (Σ_gas, T, a_max)…")
+        figs["hovmoller_rt"] = self.plot_hovmoller_rt(
+            quantities=["Sigma_gas", "T", "a_max"],
+            t_unit="kyr",
+            t_log=False,
+        )
+
+        print(f"\n¡Listo! {len(figs)} figuras generadas para snap_num={snap_num}.")
+        return figs
+
 
 # ──────────────────────────────────────────────────────────────────────────────
 # Helpers
@@ -1082,43 +1191,11 @@ if __name__ == "__main__":
         r"data_post_pipeline\pipeline_v3_Sigma_update"
     savedir = sys.argv[2] if len(sys.argv) > 2 else "diagnostics_output"
 
+    # Número de snapshot: tercer argumento opcional (default = -1, último)
+    snap_num = int(sys.argv[3]) if len(sys.argv) > 3 else -1
+
     d = SnowlineDiagnostics(datadir, savedir=savedir, r_trim=0.93, t_min_yr=100.0)
-
-    print("\n[1/8] Hovmöller (eps)…")
-    d.plot_hovmoller(quantity="eps")
-
-    print("[2/8] Hovmöller (Sigma_dust)…")
-    d.plot_hovmoller(quantity="Sigma_dust")
-
-    print("[3/8] Distribución de tamaño (último snapshot)…")
-    d.plot_size_distribution(it=-1)
-
-    print("[4/8] Pebble flux…")
-    d.plot_pebble_flux()
-
-    print("[5/8] Perfiles (η, St, a_max, Σ)…")
-    d.plot_profiles(it=-1)
-
-    print("[6a/8] Densidades de gas por componente…")
-    d.plot_gas_components(it=-1)
-
-    print("[6b/8] Densidades de polvo por componente…")
-    d.plot_dust_components(it=-1)
-
-    if d.volatile_species:
-        print(f"[7a/8] Hovmöller por especie (SigmaDust) — {d.volatile_species} + silicatos…")
-        d.plot_hovmoller_comp(quantity='dust')
-        print("[7b/8] Hovmöller por especie (SigmaGas)…")
-        d.plot_hovmoller_comp(quantity='gas')
-    else:
-        print("[7/8] Sin SigmaDust_X en HDF5, omitiendo hovmoller_comp.")
-
-    print("[8/8] Hovmöller R(t) — 3 paneles (Sigma_gas, T, a_max)…")
-    d.plot_hovmoller_rt(
-        quantities=["Sigma_gas", "T", "a_max"],
-        t_unit="kyr",
-        t_log=False,
-    )
+    d.run(snap_num=snap_num)
 
     plt.show()
     print("\n¡Listo!")

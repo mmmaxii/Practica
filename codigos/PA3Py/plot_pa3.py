@@ -116,6 +116,18 @@ class PA3Diagnostics:
             for r in self.r_au
         ])
 
+    def _active_snowlines(self):
+        """
+        Devuelve el subconjunto de SNOWLINE_STYLES cuyas claves existen
+        en pam.rsnow (es decir, las especies realmente simuladas).
+        Evita aparicion de snowlines fantasma de especies no activas.
+        """
+        return {
+            sp: style
+            for sp, style in SNOWLINE_STYLES.items()
+            if sp in self.pam.rsnow and self.pam.rsnow[sp] is not None
+        }
+
     def _get_rsnow_series(self, sp):
         arr = self.pam.rsnow.get(sp, None)
         if arr is None:
@@ -124,7 +136,7 @@ class PA3Diagnostics:
 
     def _add_snowline_vlines(self, ax, it=-1, alpha=0.75):
         it_use = it % self.pam.Nt
-        for sp, style in SNOWLINE_STYLES.items():
+        for sp, style in self._active_snowlines().items():
             rs = self._get_rsnow_series(sp)
             if rs is None:
                 continue
@@ -135,7 +147,7 @@ class PA3Diagnostics:
                        alpha=alpha, label=f"{sp} snowline ({rv:.1f} AU)")
 
     def _add_snowline_curves(self, ax, swap_axes=False, alpha=0.85):
-        for sp, style in SNOWLINE_STYLES.items():
+        for sp, style in self._active_snowlines().items():
             rs = self._get_rsnow_series(sp)
             if rs is None:
                 continue
@@ -305,6 +317,9 @@ class PA3Diagnostics:
             ax.set_title(f"Composicion acumulada  r = {r_au:.2f} AU", pad=6)
             ax.legend(loc="upper left", fontsize=7, framealpha=0.6, ncol=2)
             ax.set_xscale("log")
+            if len(t) > 1:
+                ax.set_xlim(float(t[t > 0].min()) if (t > 0).any() else float(t[0]),
+                            float(t[-1]))
 
         axes[-1].set_xlabel("Tiempo [yr]")
         fig.suptitle("Evolucion de composicion quimica por embrion",
@@ -371,6 +386,10 @@ class PA3Diagnostics:
         ax1.set_title("Evolucion de masa del planeta M(r, t)", pad=6)
         ax1.set_yscale("log")
         ax1.set_ylim(y_lim)
+        if len(t_common) > 1:
+            t_pos = t_common[t_common > 0]
+            ax1.set_xlim(float(t_pos.min()) if t_pos.size else float(t_common[0]),
+                         float(t_common[-1]))
         self._add_snowline_curves(ax1, swap_axes=False)
         ax1.legend(fontsize=7, framealpha=0.4, loc="upper right")
 
@@ -386,9 +405,14 @@ class PA3Diagnostics:
         ax2.set_title("Evolucion de fraccion de H2O f(r, t)", pad=6)
         ax2.set_yscale("log")
         ax2.set_ylim(y_lim)
+        if len(t_common) > 1:
+            t_pos = t_common[t_common > 0]
+            ax2.set_xlim(float(t_pos.min()) if t_pos.size else float(t_common[0]),
+                         float(t_common[-1]))
         self._add_snowline_curves(ax2, swap_axes=False)
 
         ax1.set_xscale("log")
+        ax2.set_xscale("log")
 
         fig.tight_layout()
         self._save(fig, "pa3_hovmoller")
@@ -406,7 +430,7 @@ class PA3Diagnostics:
 
         Sobreimprime M_iso(r) y snowlines.
         Eje X recortado a: (r_min_emb * 0.9, r_max_emb + 2 AU).
-
+w
         Parameters
         ----------
         it : int
