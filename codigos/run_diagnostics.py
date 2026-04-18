@@ -55,18 +55,18 @@ from plot_diagnostics    import SnowlineDiagnostics
 # ══════════════════════════════════════════════════════════════════════════════
 # Directorios de salida
 # ══════════════════════════════════════════════════════════════════════════════
-BASE_DIR    = "data_gaps_pipeline/t_1e5"
-FIGURES_DIR = "figs_gaps_pipeline/t_1e5"
+BASE_DIR    = "data_gaps_pipeline/t_5e6"
+FIGURES_DIR = "figs_gaps_pipeline/t_5e6"
 
 # ══════════════════════════════════════════════════════════════════════════════
 # Parámetros globales compartidos por todos los runs
 # ══════════════════════════════════════════════════════════════════════════════
 _DEFAULTS = dict(
     active_species = ["H2O"],
-    t_end_years    = 1e5,     # 5 Myr
+    t_end_years    = 5e6,     # 5 Myr
     num_snapshots  = 50,
     M_star_Msun    = 1.0,
-    Nr             = 100,      # Nr=200 colapsa el solver implícito (N≈28k → muy lento)
+    Nr             = 200,      # Nr=200 colapsa el solver implícito (N≈28k → muy lento)
     rmax_au        = 200.0,    # 300→200 AU: el polvo relevante está <100 AU
     alpha_ref      = 1e-3,
 )
@@ -99,7 +99,7 @@ RUNS = [
     _run("baseline", "none"),
 
     # ── Grupo 1: Mismo tamaño (1 M_Júpiter), distintas posiciones ────────────
-    _run("duffell_1MJ_2au",  "duffell", M_planet=317.8*c.M_earth, a_planet_au=2.0),
+    _run("duffell_1MJ_2au",  "duffell", M_planet=317.8*c.M_earth, a_planet_au=3.0),
     _run("duffell_1MJ_5au",  "duffell", M_planet=317.8*c.M_earth, a_planet_au=5.0),
     _run("duffell_1MJ_10au", "duffell", M_planet=317.8*c.M_earth, a_planet_au=10.0),
     _run("duffell_1MJ_20au", "duffell", M_planet=317.8*c.M_earth, a_planet_au=20.0),
@@ -128,11 +128,11 @@ RUNS = [
          ]),
 
     # ── Grupo 4: Gaps sinusoidales ────────────────────────────────────────────
-    _run("sinusoidal_A1_suave",  "sinusoidal", amplitude=1.0,  n_bumps=5,
+    _run("sinusoidal_A1_suave",  "sinusoidal", amplitude=1.0,  n_bumps=10,
          r_inner_au=5.0, r_outer_au=100.0),
-    _run("sinusoidal_A5_medio",  "sinusoidal", amplitude=5.0,  n_bumps=5,
+    _run("sinusoidal_A5_medio",  "sinusoidal", amplitude=5.0,  n_bumps=10,
          r_inner_au=5.0, r_outer_au=100.0),
-    _run("sinusoidal_A10_fuerte","sinusoidal", amplitude=10.0, n_bumps=5,
+    _run("sinusoidal_A10_fuerte","sinusoidal", amplitude=10.0, n_bumps=10,
          r_inner_au=5.0, r_outer_au=100.0),
 ]
 
