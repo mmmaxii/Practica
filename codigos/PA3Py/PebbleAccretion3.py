@@ -50,7 +50,7 @@ class PebbleAccretionModule3:
         times_list, rsnow = [], {'H2O': [], 'CO2': [], 'CO': []}
         gas_S, gas_T, gas_cs, gas_eta, gas_nu = [], [], [], [], []
         dust_Sigma, dust_vr, dust_St = [], [], []
-        OmegaK_list = []   # ← leemos del HDF5 directamente
+        OmegaK_list = []   # leemos del HDF5 directamente
         comp_sigma = {}   
         r_grid = None
 
@@ -347,6 +347,7 @@ class PebbleAccretionModule3:
         print(f"\n{SEP}")
         print(f"{'r [AU]':>8} {'M [ME]':>9} {'M_iso [ME]':>11}  {header_sps}  {'Sil%':>7}  Tipo")
         print(SEP)
+        
         for r_au, hist in results.items():
             if len(hist) == 0:
                 print(f"{r_au:>8.2f}  -- sin acrecion")

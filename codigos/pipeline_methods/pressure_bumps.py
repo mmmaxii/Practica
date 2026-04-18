@@ -256,6 +256,127 @@ class PressureBumpsMixin:
         print(f"  → α_max en gap = {alpha_max:.3e}  |  α_ref = {_a0_val:.3e}")
 
     # ══════════════════════════════════════════════════════════════════════════
+    # Alpha sinusoidal — múltiples gaps equidistantes
+    # ══════════════════════════════════════════════════════════════════════════
+
+    def setup_alpha_sinusoidal(
+        self,
+        alpha_ref:   float = None,
+        amplitude:   float = 5.0,
+        n_bumps:     int   = 5,
+        r_inner_au:  float = 5.0,
+        r_outer_au:  float = 100.0,
+        imprint:     bool  = False,
+    ):
+        """
+        Genera múltiples gaps equidistantes mediante una perturbación sinusoidal
+        sobre el perfil de viscosidad α(r).
+
+        El perfil resultante es:
+            α(r) = α_ref · (1 + A · sin²(n_bumps · π · x(r)))
+
+        donde x(r) ∈ [0, 1] es la coordenada radial normalizada en escala log
+        entre r_inner y r_outer.
+
+        Física:
+          - Los máximos de α (α_ref·(1+A)) corresponden a gaps (Σ ∝ 1/α).
+          - Los mínimos de α (α_ref) corresponden a anillos / trampas de presión.
+          - A=0   → sin estructura (α uniforme)
+          - A=1   → amplitud suave  (~2× el nivel base)
+          - A=5   → amplitud media  (~6× el nivel base)
+          - A=10  → amplitud fuerte (~11× el nivel base)
+
+        Parameters
+        ----------
+        alpha_ref : float, optional
+            α de referencia (nivel base de viscosidad) [adim].
+            Default: self.gap_alpha_ref.
+            ⚠ No usar sim.gas.alpha — se captura antes del updater.
+        amplitude : float, optional
+            Amplitud A de la perturbación sinusoidal [adim].
+            Ejemplos: 1.0 (suave), 5.0 (media), 10.0 (fuerte).
+            Default: 5.0.
+        n_bumps : int, optional
+            Número de gaps (semiperíodos de la sinusoidal en [r_inner, r_outer]).
+            Default: 5.
+        r_inner_au : float, optional
+            Radio interior de la región perturbada [AU]. Default: 5 AU.
+        r_outer_au : float, optional
+            Radio exterior de la región perturbada [AU]. Default: 100 AU.
+        imprint : bool, optional
+            Si True, aplica el perfil α a Σ_gas y Σ_dust desde t=0.
+            Default: False.
+
+        Notes
+        -----
+        Fuera de [r_inner, r_outer] el α permanece en alpha_ref (sin estructura).
+        La sinusoidal usa sin² para garantizar α ≥ α_ref siempre (sin valores
+        negativos ni inferiores al baseline).
+        """
+        _a0        = alpha_ref  if alpha_ref  is not None else self.gap_alpha_ref
+        _r_in      = r_inner_au * c.au
+        _r_out     = r_outer_au * c.au
+        _A         = amplitude
+        _n         = int(n_bumps)
+
+        # Capturar alpha0 array ANTES del updater (patrón dustpylib)
+        alpha0 = self.sim.gas.alpha.copy()
+
+        print("Configurando α sinusoidal — gaps múltiples equidistantes")
+        print(f"  → alpha_ref  = {_a0:.2e}")
+        print(f"  → amplitud A = {_A:.1f}  →  α_max = {_a0 * (1 + _A):.2e}")
+        print(f"  → n_gaps     = {_n}  en [{r_inner_au:.1f}, {r_outer_au:.1f}] AU")
+        print(f"  → imprint    = {imprint}")
+
+        # Cerrar variables en el closure
+        _a0_cl  = _a0
+        _A_cl   = _A
+        _n_cl   = _n
+        _rin_cl = _r_in
+        _rot_cl = _r_out
+
+        def _alpha_sinusoidal(sim):
+            """
+            α(r) = α_ref · [1 + A · sin²(n · π · x(r))]
+
+            x(r) = log(r/r_in) / log(r_out/r_in)  ∈ [0, 1]
+
+            Fuera de [r_in, r_out]: α = α_ref (sin perturbación).
+            """
+            r   = sim.grid.r
+            out = np.full_like(r, _a0_cl)
+
+            mask   = (r >= _rin_cl) & (r <= _rot_cl)
+            r_zone = r[mask]
+
+            if r_zone.size > 0:
+                # Coordenada normalizada en escala log
+                log_in  = np.log(_rin_cl)
+                log_out = np.log(_rot_cl)
+                x       = (np.log(r_zone) - log_in) / (log_out - log_in)
+                # Perturbación: sin² crea máximos limpios sin valores negativos
+                perturb = 1.0 + _A_cl * np.sin(_n_cl * np.pi * x) ** 2
+                out[mask] = _a0_cl * perturb
+
+            return out
+
+        self.sim.gas.alpha.updater.updater = _alpha_sinusoidal
+        self.sim.gas.alpha.update()
+        self.sim.update()
+
+        if imprint:
+            ratio = self.sim.gas.alpha / alpha0
+            ratio = np.where(ratio > 0, ratio, 1.0)
+            print("  → Imprimiendo perfil sinusoidal en Σ_gas y Σ_dust (imprint=True)...")
+            self.sim.gas.Sigma[...]  /= ratio
+            self.sim.dust.Sigma[...] /= ratio[:, None]
+            self.sim.update()
+
+        alpha_max = float(self.sim.gas.alpha.max())
+        alpha_min = float(self.sim.gas.alpha.min())
+        print(f"  → α ∈ [{alpha_min:.2e}, {alpha_max:.2e}]  |  α_ref = {_a0:.2e}")
+
+    # ══════════════════════════════════════════════════════════════════════════
     # Utilidades
     # ══════════════════════════════════════════════════════════════════════════
 
@@ -272,3 +393,4 @@ class PressureBumpsMixin:
         self.sim.gas.alpha.update()
         self.sim.update()
         print("  → gap eliminado.")
+
