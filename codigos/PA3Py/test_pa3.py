@@ -6,12 +6,12 @@ from PA3Py.plot_pa3 import PA3Diagnostics
 import numpy as np
 import matplotlib.pyplot as plt
 
-DATADIR = r"C:\astro\Codigos practica + docs + papers\codigos\data_post_pipeline\pipeline_v3_Sigma_update"
+DATADIR = r"C:\astro\Codigos practica + docs + papers\codigos\data_gaps_pipeline\t_5e6\sinusoidal_A10_fuerte"
 
 # Grilla densa de embriones — concentrada en la zona de la snowline del H2O
-EMBRYOS = sorted(list(np.logspace(np.log10(1.2), np.log10(10.0), num=40)))
+EMBRYOS = sorted(list(np.logspace(np.log10(1.2), np.log10(30.0), num=300)))
 
-print("Cargando datos del disco...")
+print("Cargando datos del discos...")
 pam3 = PebbleAccretionModule3.from_datadir(DATADIR, M_star=1.0)
 
 print("\nEjecutando integracion de crecimiento...")
@@ -20,7 +20,7 @@ pam3.summary(results)
 
 # ── Diagnosticos ───────────────────────────────────────────────────────────────
 print("\nGenerando plots...")
-diag = PA3Diagnostics(pam3, results, savedir="figs_pa3")
+diag = PA3Diagnostics(pam3, results, savedir="figs_pa3_test")
 
 # Embriones representativos para plots temporales (composicion)
 r_comp = [r for r in EMBRYOS if any(

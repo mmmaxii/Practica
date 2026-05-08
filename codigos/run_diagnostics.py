@@ -55,15 +55,15 @@ from plot_diagnostics    import SnowlineDiagnostics
 # ══════════════════════════════════════════════════════════════════════════════
 # Directorios de salida
 # ══════════════════════════════════════════════════════════════════════════════
-BASE_DIR    = "data_gaps_pipeline/t_5e6"
-FIGURES_DIR = "figs_gaps_pipeline/t_5e6"
+BASE_DIR    = "data/gaps_pipeline/t_1e6_optimised"
+FIGURES_DIR = "figures/gaps_pipeline/t_1e6_optimised"
 
 # ══════════════════════════════════════════════════════════════════════════════
 # Parámetros globales compartidos por todos los runs
 # ══════════════════════════════════════════════════════════════════════════════
 _DEFAULTS = dict(
     active_species = ["H2O"],
-    t_end_years    = 5e6,     # 5 Myr
+    t_end_years    = 1e6,     # 1 Myr
     num_snapshots  = 50,
     M_star_Msun    = 1.0,
     Nr             = 200,      # Nr=200 colapsa el solver implícito (N≈28k → muy lento)
@@ -85,7 +85,7 @@ def _run(label, gap_model, **kwargs):
     cfg.setdefault("amplitude",   5.0)
     cfg.setdefault("n_bumps",     5)
     cfg.setdefault("r_inner_au",  1.0)
-    cfg.setdefault("r_outer_au",  100.0)
+    cfg.setdefault("r_outer_au",  200.0)
     return cfg
 
 
@@ -197,19 +197,14 @@ def build_and_run(cfg: dict):
                   f"q={Mp/pipeline.sim.star.M:.2e}")
 
         def _multi_duffell(sim):
-            alpha_out = _alpha0.copy()
+            f_safe_total = np.ones_like(sim.grid.r)
             for Mp, a_pl in _pl_list:
                 q      = Mp / float(sim.star.M)
-                f_h    = interp1d(sim.grid.r, sim.gas.Hp / sim.grid.r,
-                                  bounds_error=False, fill_value="extrapolate")
-                h_p    = float(f_h(a_pl))
-                f_alp  = interp1d(sim.grid.r, _alpha0,
-                                  bounds_error=False, fill_value="extrapolate")
-                alp_p  = float(f_alp(a_pl))
+                h_p    = float(np.interp(a_pl, sim.grid.r, sim.gas.Hp / sim.grid.r))
+                alp_p  = float(np.interp(a_pl, sim.grid.r, _alpha0))
                 f_gap  = duffell2020(sim.grid.r, a_pl, q, h_p, alp_p)
-                f_safe = np.maximum(f_gap, 1e-10)
-                alpha_out /= f_safe
-            return alpha_out
+                f_safe_total *= np.maximum(f_gap, 1e-10)
+            return _alpha0 / f_safe_total
 
         pipeline.sim.gas.alpha.updater.updater = _multi_duffell
         pipeline.sim.gas.alpha.update()
@@ -234,7 +229,7 @@ def build_and_run(cfg: dict):
     # 7. Run
     pipeline.sim.update()
     pipeline.run_integration(
-        t_start_years = 1,
+        t_start_years = 1000,
         t_end_years   = cfg["t_end_years"],
         num_snapshots = cfg["num_snapshots"],
     )

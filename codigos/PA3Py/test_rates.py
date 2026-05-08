@@ -3,11 +3,11 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')
 
 from PA3Py.PebbleAccretion3 import PebbleAccretionModule3
 
-DATADIR = r"C:\astro\Codigos practica + docs + papers\codigos\data_post_pipeline\pipeline_v3_Sigma_update"
+DATADIR = r"C:\astro\Codigos practica + docs + papers\codigos\data_gaps_pipeline\t_5e6\sinusoidal_A10_fuerte"
 pam3 = PebbleAccretionModule3.from_datadir(DATADIR, M_star=1.0)
-M = pam3.M_EARTH * 1e-2
+M = pam3.M_EARTH * 1e-4
 
-for r_au in [3.0, 5.0, 10.0]:
+for r_au in [1.0, 3.0, 5.0, 10.0, 100.0]:
     r = r_au * pam3.AU
     p = pam3._local(20, r)
     St = p['St']

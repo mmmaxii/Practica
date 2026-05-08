@@ -392,8 +392,8 @@ def plot_combined(
 # ════════════════════════════════════════════════════════════════════════════
 
 def run_pipeline(
-    dataroot:    str   = "data_gaps_pipeline/t_5e6",
-    savedir:     str   = "figs_pa3",
+    dataroot:    str   = "data/gaps_pipeline/t_5e6",
+    savedir:     str   = "figures/pa3",
     r_planet_au: float = 2.0,
     t_min_yr:    float = 100.0,
     show:        bool  = True,
@@ -483,12 +483,12 @@ if __name__ == "__main__":
         description="Pipeline de plots PA3 comparativos para runs de t_5e6."
     )
     parser.add_argument(
-        "--dataroot", default="data_gaps_pipeline/t_5e6",
-        help="Directorio raíz con las carpetas de runs (default: data_gaps_pipeline/t_5e6)"
+        "--dataroot", default="data/gaps_pipeline/t_5e6",
+        help="Directorio raíz con las carpetas de runs (default: data/gaps_pipeline/t_5e6)"
     )
     parser.add_argument(
-        "--savedir", default="figs_pa3",
-        help="Directorio de salida para los PDFs (default: figs_pa3)"
+        "--savedir", default="figures/pa3",
+        help="Directorio de salida para los PDFs (default: figures/pa3)"
     )
     parser.add_argument(
         "--r_planet", type=float, default=2.0,

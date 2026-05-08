@@ -121,46 +121,27 @@ class PressureBumpsMixin:
         _a_cl     = _a
         _alpha0   = alpha0    # array completo, constante en el closure
 
-        def _gap_updater_kanagawa(sim):
-            """
-            Updater de sim.gas.alpha para el gap de Kanagawa 2017.
+        # Calcular gap de Kanagawa en t=0 de forma ESTÁTICA
+        q_now = _M_p / float(self.sim.star.M)
+        h_p = float(np.interp(_a_cl, self.sim.grid.r, self.sim.gas.Hp / self.sim.grid.r))
+        alp_p = float(np.interp(_a_cl, self.sim.grid.r, alpha0))
 
-            Sigue el patrón oficial:
-              1. Partir de alpha_unperturbado = alpha0.copy()
-              2. Interpolar h y alp en la posición del planeta (escalares)
-              3. alpha /= kanagawa2017(r, a, q, h_scalar, alp_scalar)
-            """
-            alpha_out = _alpha0.copy()
+        f_gap = kanagawa2017(self.sim.grid.r, _a_cl, q_now, h_p, alp_p)
+        
+        # Limitar la profundidad a max 99.9% para evitar 'Factor exactly singular'
+        f_safe = np.maximum(f_gap, 1e-3)
+        alpha_static = alpha0 / f_safe
 
-            q_now = _M_p / float(sim.star.M)   # dinámico con la estrella
-
-            # Interpolar h = H_gas/r en la posición del planeta (escalar)
-            f_h   = interp1d(sim.grid.r, sim.gas.Hp / sim.grid.r,
-                             bounds_error=False, fill_value="extrapolate")
-            h_p   = float(f_h(_a_cl))
-
-            # Interpolar alpha0 en la posición del planeta (escalar)
-            f_alp = interp1d(sim.grid.r, _alpha0,
-                             bounds_error=False, fill_value="extrapolate")
-            alp_p = float(f_alp(_a_cl))
-
-            # Dividir por el perfil de gap (array de shape Nr)
-            f_gap  = kanagawa2017(sim.grid.r, _a_cl, q_now, h_p, alp_p)
-            f_safe = np.maximum(f_gap, 1e-10)
-            alpha_out /= f_safe
-            return alpha_out
-
-        self.sim.gas.alpha.updater.updater = _gap_updater_kanagawa
-        self.sim.gas.alpha.update()
+        # Fijar vector y destruir updater continuo
+        self.sim.gas.alpha[...] = alpha_static
+        self.sim.gas.alpha.updater = None
+        
+        # IMPRINT FORZADO: tallar el disco en t=0 para evitar flujos viscosos violentos
+        ratio = alpha_static / alpha0
+        print("  → Imprimiendo gap en Σ_gas y Σ_dust de inmediato (Static Imprint)...")
+        self.sim.gas.Sigma[...]  /= ratio
+        self.sim.dust.Sigma[...] /= ratio[:, None]
         self.sim.update()
-
-        # Imprimir gap en Σ desde t=0 (opcional)
-        if imprint:
-            ratio = self.sim.gas.alpha / alpha0
-            print("  → Imprimiendo gap en Σ_gas y Σ_dust (imprint=True)...")
-            self.sim.gas.Sigma[...]  /= ratio
-            self.sim.dust.Sigma[...] /= ratio[:, None]
-            self.sim.update()
 
         alpha_max = float(self.sim.gas.alpha.max())
         print(f"  → α_max en gap = {alpha_max:.3e}  |  α_ref = {_a0_val:.3e}")
@@ -215,45 +196,58 @@ class PressureBumpsMixin:
         _a_cl   = _a
         _alpha0 = alpha0
 
-        def _gap_updater_duffell(sim):
-            """
-            Updater de sim.gas.alpha para el gap de Duffell 2020.
+        # Calcular gap de Duffell en t=0 de forma ESTÁTICA
+        q_now = _M_p / float(self.sim.star.M)
+        h_p = float(np.interp(_a_cl, self.sim.grid.r, self.sim.gas.Hp / self.sim.grid.r))
+        alp_p = float(np.interp(_a_cl, self.sim.grid.r, alpha0))
 
-            Sigue el patrón oficial:
-              1. Partir de alpha0.copy()
-              2. Interpolar h y alp en la posición del planeta (escalares)
-              3. alpha /= duffell2020(r, a, q, h_scalar, alp_scalar)
-            """
-            alpha_out = _alpha0.copy()
+        f_gap = duffell2020(self.sim.grid.r, _a_cl, q_now, h_p, alp_p)
+        
+        # Limitar la profundidad a max 99.9% para evitar 'Factor exactly singular'
+        f_safe = np.maximum(f_gap, 1e-3)
+        alpha_static = alpha0 / f_safe
 
-            q_now = _M_p / float(sim.star.M)
+        # Fijar vector y destruir updater continuo
+        self.sim.gas.alpha[...] = alpha_static
+        self.sim.gas.alpha.updater = None
 
-            f_h   = interp1d(sim.grid.r, sim.gas.Hp / sim.grid.r,
-                             bounds_error=False, fill_value="extrapolate")
-            h_p   = float(f_h(_a_cl))
-
-            f_alp = interp1d(sim.grid.r, _alpha0,
-                             bounds_error=False, fill_value="extrapolate")
-            alp_p = float(f_alp(_a_cl))
-
-            f_gap  = duffell2020(sim.grid.r, _a_cl, q_now, h_p, alp_p)
-            f_safe = np.maximum(f_gap, 1e-10)
-            alpha_out /= f_safe
-            return alpha_out
-
-        self.sim.gas.alpha.updater.updater = _gap_updater_duffell
-        self.sim.gas.alpha.update()
+        # IMPRINT FORZADO: tallar el gap enseguida para no congelar dt
+        ratio = alpha_static / alpha0
+        print("  → Imprimiendo gap de Duffell en Σ_gas y Σ_dust de inmediato (Static)...")
+        self.sim.gas.Sigma[...]  /= ratio
+        self.sim.dust.Sigma[...] /= ratio[:, None]
         self.sim.update()
-
-        if imprint:
-            ratio = self.sim.gas.alpha / alpha0
-            print("  → Imprimiendo gap en Σ_gas y Σ_dust (imprint=True)...")
-            self.sim.gas.Sigma[...]  /= ratio
-            self.sim.dust.Sigma[...] /= ratio[:, None]
-            self.sim.update()
 
         alpha_max = float(self.sim.gas.alpha.max())
         print(f"  → α_max en gap = {alpha_max:.3e}  |  α_ref = {_a0_val:.3e}")
+
+    def setup_gap_duffell_multi(self, planets: list, alpha_ref=None, imprint=False):
+        _a0 = alpha_ref if alpha_ref is not None else self.gap_alpha_ref
+        _pl_list = [(p["M_planet"], p["a_planet_au"] * c.au) for p in planets]
+        
+        # Calcular gaps de Duffell para el sistema enjambre/múltiple
+        print(f"Configurando {len(_pl_list)} gaps planetarios ESTÁTICOS — Duffell (multi)")
+
+        f_safe_total = np.ones_like(self.sim.grid.r)
+        alpha0 = self.sim.gas.alpha.copy()
+
+        for Mp, a_pl in _pl_list:
+            q      = Mp / float(self.sim.star.M)
+            h_p    = float(np.interp(a_pl, self.sim.grid.r, self.sim.gas.Hp / self.sim.grid.r))
+            alp_p  = float(np.interp(a_pl, self.sim.grid.r, alpha0))
+            f_gap  = duffell2020(self.sim.grid.r, a_pl, q, h_p, alp_p)
+            f_safe_total *= np.maximum(f_gap, 1e-3)
+        
+        alpha_static = alpha0 / f_safe_total
+        self.sim.gas.alpha[...] = alpha_static
+        self.sim.gas.alpha.updater = None
+
+        if imprint:
+            ratio = alpha_static / alpha0
+            print("  → Imprimiendo gaps múltiples en Σ_gas y Σ_dust...")
+            self.sim.gas.Sigma[...] /= ratio
+            self.sim.dust.Sigma[...] /= ratio[:, None]
+            self.sim.update()
 
     # ══════════════════════════════════════════════════════════════════════════
     # Alpha sinusoidal — múltiples gaps equidistantes
@@ -335,46 +329,49 @@ class PressureBumpsMixin:
         _rin_cl = _r_in
         _rot_cl = _r_out
 
-        def _alpha_sinusoidal(sim):
-            """
-            α(r) = α_ref · [1 + A · sin²(n · π · x(r))]
+        # Calcular Sinusoidales
+        r   = self.sim.grid.r
+        alpha_static = np.full_like(r, _a0)
+        mask   = (r >= _r_in) & (r <= _r_out)
+        r_zone = r[mask]
 
-            x(r) = log(r/r_in) / log(r_out/r_in)  ∈ [0, 1]
+        if r_zone.size > 0:
+            log_in  = np.log(_r_in)
+            log_out = np.log(_r_out)
+            x       = (np.log(r_zone) - log_in) / (log_out - log_in)
+            perturb = 1.0 + _A * np.sin(_n * np.pi * x) ** 2
+            alpha_static[mask] = _a0 * perturb
 
-            Fuera de [r_in, r_out]: α = α_ref (sin perturbación).
-            """
-            r   = sim.grid.r
-            out = np.full_like(r, _a0_cl)
+        self.sim.gas.alpha[...] = alpha_static
+        self.sim.gas.alpha.updater = None
 
-            mask   = (r >= _rin_cl) & (r <= _rot_cl)
-            r_zone = r[mask]
+        # Imprint forzado — con SigmaFloor para prevenir celdas nulas
+        # que harían singular la matriz LU del solver implícito (RuntimeError).
+        alpha_base = np.full_like(self.sim.grid.r, _a0)
+        ratio = alpha_static / alpha_base
+        ratio = np.where(ratio > 0, ratio, 1.0)
 
-            if r_zone.size > 0:
-                # Coordenada normalizada en escala log
-                log_in  = np.log(_rin_cl)
-                log_out = np.log(_rot_cl)
-                x       = (np.log(r_zone) - log_in) / (log_out - log_in)
-                # Perturbación: sin² crea máximos limpios sin valores negativos
-                perturb = 1.0 + _A_cl * np.sin(_n_cl * np.pi * x) ** 2
-                out[mask] = _a0_cl * perturb
+        # Leer SigmaFloor de la simulación (tripodpy lo define en gas y dust).
+        # SigmaFloor puede ser un Field-array (Nr,) o un escalar según la versión
+        # de tripodpy, por eso se extrae con np.atleast_1d().min() en vez de float().
+        _sf_gas  = getattr(self.sim.gas,  'SigmaFloor', 1e-100)
+        _sf_dust = getattr(self.sim.dust, 'SigmaFloor', 1e-100)
+        sigma_floor_gas  = float(np.atleast_1d(np.asarray(_sf_gas,  dtype=float)).min())
+        sigma_floor_dust = float(np.atleast_1d(np.asarray(_sf_dust, dtype=float)).min())
 
-            return out
+        print("  → Imprimiendo perfil sinusoidal estático en Σ_gas y Σ_dust...")
+        new_sigma_gas  = self.sim.gas.Sigma  / ratio
+        new_sigma_dust = self.sim.dust.Sigma / ratio[:, None]
 
-        self.sim.gas.alpha.updater.updater = _alpha_sinusoidal
-        self.sim.gas.alpha.update()
+        # Aplicar piso: nunca dejar celdas por debajo de SigmaFloor
+        self.sim.gas.Sigma[...]  = np.maximum(new_sigma_gas,  sigma_floor_gas)
+        self.sim.dust.Sigma[...] = np.maximum(new_sigma_dust, sigma_floor_dust)
         self.sim.update()
-
-        if imprint:
-            ratio = self.sim.gas.alpha / alpha0
-            ratio = np.where(ratio > 0, ratio, 1.0)
-            print("  → Imprimiendo perfil sinusoidal en Σ_gas y Σ_dust (imprint=True)...")
-            self.sim.gas.Sigma[...]  /= ratio
-            self.sim.dust.Sigma[...] /= ratio[:, None]
-            self.sim.update()
 
         alpha_max = float(self.sim.gas.alpha.max())
         alpha_min = float(self.sim.gas.alpha.min())
         print(f"  → α ∈ [{alpha_min:.2e}, {alpha_max:.2e}]  |  α_ref = {_a0:.2e}")
+        print(f"  → Σ_gas  floor = {sigma_floor_gas:.2e}  |  Σ_dust floor = {sigma_floor_dust:.2e}")
 
     # ══════════════════════════════════════════════════════════════════════════
     # Utilidades

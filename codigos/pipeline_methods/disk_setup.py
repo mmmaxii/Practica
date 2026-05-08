@@ -11,6 +11,10 @@ Mixin para WaterworldPipeline que agrupa:
 
 import numpy as np
 import dustpy.constants as c
+import sys, os
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from grid_extension import refinegrid_dustpy
+
 
 
 class DiskSetupMixin:
@@ -42,11 +46,12 @@ class DiskSetupMixin:
         Posteriormente se puede agregar refinamiento de grilla (dustpylib)
         si los gradientes en las snowlines se vuelven numéricamente difíciles.
         """
-        print(f"Configurando grilla: {Nr} celdas  |  "
+        print(f"Configurando grilla original (log): {Nr} celdas  |  "
               f"{rmin/c.au:.1f} – {rmax/c.au:.1f} AU")
         self.sim.ini.grid.rmin = rmin
         self.sim.ini.grid.rmax = rmax
         self.sim.ini.grid.Nr   = Nr
+        
         # Radio característico del perfil de Σ_gas (Lynden-Bell & Pringle 1974)
         self.sim.ini.gas.SigmaRc = 30.0 * c.au
 
@@ -105,8 +110,76 @@ class DiskSetupMixin:
         self.sim.initialize()
 
     # ══════════════════════════════════════════════════════════════════════════
-    # Evolución estelar (contracción pre-MS)
+    # Refinamiento de grilla
     # ══════════════════════════════════════════════════════════════════════════
+
+    def setup_refined_grid(
+        self,
+        gap_positions_au: list = None,
+        snowline_au: float = 2.0,
+        num_gap: int = 3,
+        num_snow: int = 2,
+    ):
+        """
+        Refina la grilla radial antes de initialize_simulation().
+
+        DEBE llamarse después de setup_grid()/setup_star() pero ANTES de
+        initialize_simulation(). Sigue el patrón oficial de dustpy docs:
+
+            sim.grid.ri = ri_refinada   # ndarray plano, ANTES de initialize()
+            sim.initialize()            # makegrids() convierte ri a Field constante
+
+        No modificar sim.ini.grid.Nr — makegrids() lo calcula automáticamente
+        como len(ri) - 1.
+
+        Parameters
+        ----------
+        gap_positions_au : list of float, optional
+            Posiciones de los gaps [AU]. Se refina con num=num_gap en cada una.
+        snowline_au : float
+            Posición de la snowline H2O [AU] para refinar. Default: 2.0 AU.
+        num_gap : int
+            Niveles de refinamiento en cada gap. Default: 3.
+        num_snow : int
+            Niveles de refinamiento en la snowline. Default: 2.
+        """
+        from grid_extension import refinegrid_tripodpy   # función del tutorial dustpy
+
+        rmin = float(self.sim.ini.grid.rmin)
+        rmax = float(self.sim.ini.grid.rmax)
+        Nr   = int(self.sim.ini.grid.Nr)
+
+        # Construir ri log-uniforme (igual que haría initialize() por defecto)
+        ri = np.geomspace(rmin, rmax, Nr + 1)
+
+        # ── Refinamiento en snowline H2O ──────────────────────────────────
+        ri = refinegrid_tripodpy(ri, snowline_au * c.au, num=num_snow)
+        print(f"  → Grid refinado en snowline H2O ({snowline_au:.1f} AU)  num={num_snow}")
+
+        # ── Refinamiento en cada posición de gap ──────────────────────────
+        if gap_positions_au:
+            for r_au in sorted(gap_positions_au):
+                r_cm = r_au * c.au
+                if rmin < r_cm < rmax:
+                    ri = refinegrid_tripodpy(ri, r_cm, num=num_gap)
+                    print(f"  → Grid refinado en gap ({r_au:.1f} AU)  num={num_gap}")
+                else:
+                    print(f"  [!] Gap en {r_au:.1f} AU fuera del dominio — omitido")
+
+        Nr_new = len(ri) - 1
+
+        # ── Asignar como ndarray plano ANTES de initialize() ─────────────
+        # dustpy docs: "It is sufficient to assign a numpy.ndarray to
+        # Simulation.grid.ri and not a simframe.Field."
+        # makegrids() (dentro de initialize()) convierte ri a Field constante
+        # y calcula Nr, r, A automáticamente desde len(ri)-1.
+        self.sim.grid.ri = ri   # ndarray, NO tocar ini.grid.Nr
+
+        print(f"  → Nr: {Nr} → {Nr_new} celdas  (+{Nr_new - Nr})")
+
+
+
+
 
     def setup_star_evolution(self, R_fin_Rsun=1.5, t_contract_yr=1.0e7):
         """
@@ -155,3 +228,126 @@ class DiskSetupMixin:
 
         r_now = float(self.sim.star.R) / c.R_sun
         print(f"  → R(t=0) = {r_now:.4f} R☉  (esperado: {self.R_star_Rsun:.2f} R☉)")
+
+    # ══════════════════════════════════════════════════════════════════════════
+    # Reinicio desde dump (restart)
+    # ══════════════════════════════════════════════════════════════════════════
+
+    @staticmethod
+    def restart_from_dump(
+        datadir: str,
+        t_end_years: float,
+        num_extra_snapshots: int = 30,
+        dump_filename: str = "frame.dmp",
+    ):
+        """
+        Reinicia una simulación desde el dump file generado por tripodpy.
+
+        El dump file contiene el estado completo de la simulación, incluyendo
+        todos los updaters y funciones personalizadas. NO es necesario
+        re-ejecutar ningún paso del pipeline.
+
+        Patrón oficial (tripodpy docs):
+            sim = readdump("frame.dmp")
+            sim.t.snapshots = np.concatenate([sim.t.snapshots, nuevos_snaps])
+            sim.run()
+
+        Parameters
+        ----------
+        datadir : str
+            Directorio de datos que contiene el dump file y los HDF5.
+        t_end_years : float
+            Nuevo tiempo final [yr]. Debe ser mayor al tiempo actual del dump.
+        num_extra_snapshots : int
+            Número de snapshots adicionales entre t_actual y t_end_years.
+            Default: 30.
+        dump_filename : str
+            Nombre del archivo dump. Default: "frame.dmp".
+
+        Returns
+        -------
+        sim : tripodpy.Simulation
+            El objeto de simulación reiniciado (ya corrió hasta t_end_years).
+
+        Raises
+        ------
+        FileNotFoundError
+            Si el dump file no existe en datadir.
+        ValueError
+            Si t_end_years es menor o igual al tiempo actual del dump.
+
+        Warnings
+        --------
+        ¡Los dump files son objetos pickle! Solo leer dumps propios o de
+        fuentes confiables (tripodpy docs).
+        """
+        import math
+        from tripodpy import readdump
+
+        dump_path = os.path.join(datadir, dump_filename)
+        if not os.path.isfile(dump_path):
+            raise FileNotFoundError(
+                f"Dump file no encontrado: {dump_path}\n"
+                f"Asegúrate de que la simulación haya corrido al menos un snapshot."
+            )
+
+        print(f"\n{'─'*60}")
+        print(f"[RESTART] Cargando dump: {dump_path}")
+        sim = readdump(dump_path)
+
+        t_now_yr  = float(sim.t) / c.year
+        print(f"  → t actual:   {t_now_yr:.3e} yr")
+        print(f"  → t objetivo: {t_end_years:.3e} yr")
+
+        if t_now_yr >= t_end_years * 0.9999:
+            print(f"  → Simulación ya alcanzó t_objetivo ({t_now_yr:.3e} yr >= {t_end_years:.3e} yr). Nada que correr.")
+            print(f"{'─'*60}")
+            return sim
+
+        # ── Reconstruir la lista de snapshots ────────────────────────────
+        # El dump guarda el array COMPLETO de snapshots originales (incluyendo
+        # futuros no completados). Hay que filtrar y extender correctamente.
+        t_now_cgs = float(sim.t)
+
+        # Snapshots del plan original que AÚN NO se han completado
+        existing_future = sim.t.snapshots[sim.t.snapshots > t_now_cgs]
+
+        t_end_cgs = t_end_years * c.year
+
+        if len(existing_future) > 0 and existing_future[-1] >= t_end_cgs * 0.999:
+            # El plan original ya cubre t_end_years — solo usar los pendientes
+            sim.t.snapshots = existing_future
+            print(f"  → Usando {len(existing_future)} snapshots pendientes "
+                  f"del plan original (hasta {existing_future[-1]/c.year:.2e} yr)")
+        else:
+            # Hay que extender más allá del plan original
+            t_max_cgs = existing_future[-1] if len(existing_future) > 0 else t_now_cgs
+            t_max_yr  = t_max_cgs / c.year
+            t_extra = np.logspace(
+                math.log10(t_max_yr),
+                math.log10(t_end_years),
+                num=num_extra_snapshots + 1,
+            )[1:] * c.year   # excluir t_max (ya en el array)
+            
+            # Prevenir puntos numéricamente idénticos
+            t_extra = t_extra[t_extra > t_max_cgs * 1.000001]
+            
+            sim.t.snapshots = np.concatenate([existing_future, t_extra])
+            print(f"  → {len(existing_future)} snapshots pendientes "
+                  f"+ {len(t_extra)} nuevos hasta {t_end_years:.1e} yr")
+
+        n_snaps = len(sim.t.snapshots)
+        print(f"  → Total snapshots a correr: {n_snaps}")
+        print(f"{'─'*60}")
+
+        if n_snaps == 0:
+            print("  [!] Sin snapshots pendientes — simulación ya completada.")
+            return sim
+
+        # IMPORTANTE: Desactivar overwrite para que simframe continúe 
+        # desde el último dataXXXX.hdf5 existente en lugar de empezar en 0000.
+        sim.writer.overwrite = False
+        sim.run()
+        return sim
+
+

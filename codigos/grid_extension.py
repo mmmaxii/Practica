@@ -75,8 +75,8 @@ def refinegrid_dustpy(ri, r0, num=3):
         rim[2 * i]     = ri[j]
         rim[2 * i + 1] = np.sqrt(ri[j] * ri[j + 1])
     ri_fine = np.concatenate((ril, rim, rir))
-    # Siguiente nivel de recursión con ventana más chica
-    return refine_radial_local(ri_fine, r0, num=num - 1)
+    # Siguiente nivel de refinamiento (recursivo) con ventana más angosta
+    return refinegrid_dustpy(ri_fine, r0, num=num - 1)
 
 
 

@@ -153,6 +153,11 @@ class WaterworldPipeline(
               f"{t_start_years:.1e} → {t_end_years:.1e} yr  |  "
               f"{num_snapshots} snapshots")
 
+        if t_start_years <= 0:
+            raise ValueError(
+                f"t_start_years debe ser > 0 (se usa log10). "
+                f"Usa t_start_years=1e3 para empezar en 1000 yr."
+            )
         self.sim.t.snapshots = np.logspace(
             math.log10(t_start_years),
             math.log10(t_end_years),
@@ -171,7 +176,7 @@ class WaterworldPipeline(
 # ══════════════════════════════════════════════════════════════════════════════
 
 if __name__ == "__main__":
-    pipeline = WaterworldPipeline("data_post_pipeline/pipeline_v4")
+    pipeline = WaterworldPipeline("data/post_pipeline/pipeline_v4")
 
     # 1. Grilla y estrella
     pipeline.active_species = ["H2O", "CO2", "CO"]

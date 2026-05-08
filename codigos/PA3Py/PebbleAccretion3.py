@@ -15,6 +15,8 @@ Física implementada y referencias:
 Unidades internas: CGS (g, cm, s).
 """
 
+import os
+import glob
 import h5py
 import numpy as np
 import dustpy.constants as c
@@ -40,8 +42,6 @@ class PebbleAccretionModule3:
 
     @classmethod
     def from_datadir(cls, datadir, M_star=1.0, t_min_yr=0.0):
-        import glob, os
-
         files = sorted(glob.glob(os.path.join(datadir, 'data*.hdf5')))
         if not files:
             raise FileNotFoundError(f"No se encontraron archivos HDF5 en {datadir}")
@@ -177,9 +177,50 @@ class PebbleAccretionModule3:
     # ══════════════════════════════════════════════════════════════════════
 
     def _interp(self, field_1d, r_emb):
+        """
+        Interpola logarítmicamente un campo radial 1D (definido en la grilla self.r)
+        para obtener su valor en la posición específica del embrión.
+
+        Parámetros:
+        -----------
+        field_1d : np.ndarray
+            Arreglo 1D con los valores del campo en cada celda de la grilla radial (shape: Nr,).
+        r_emb : float
+            Posición radial del embrión en cm.
+
+        Retorna:
+        --------
+        float
+            Valor interpolado del campo en la posición r_emb.
+        """
         return float(np.interp(np.log(r_emb), np.log(self.r), field_1d))
 
     def _local(self, t, r_emb):
+        """
+        Extrae e interpola las propiedades locales del disco (gas y polvo)
+        en un instante de tiempo temporal y en la posición del embrión,
+        que son necesarias para evaluar el flujo de acreción.
+
+        Parámetros:
+        -----------
+        t : int
+            Índice temporal correspondiente al snapshot actual (de 0 a Nt-1).
+        r_emb : float
+            Posición radial del embrión en cm.
+
+        Retorna:
+        --------
+        dict
+            Diccionario con las propiedades locales:
+            - Sigma_peb (float): Densidad superficial de pebbles [g/cm²].
+            - eta (float): Parámetro adimensional del gradiente de presión del gas.
+            - alpha (float): Parámetro de viscosidad turbulenta de Shakura-Sunyaev.
+            - St (float): Número de Stokes máximo del polvo (pebbles).
+            - H_gas (float): Escala de altura del gas [cm].
+            - Omega (float): Frecuencia Kepleriana local [rad/s].
+            - v_K (float): Velocidad Kepleriana local [cm/s].
+            - v_hw (float): Velocidad del headwind (viento de cara) de los pebbles [cm/s].
+        """
         I = lambda arr: self._interp(arr[t], r_emb)
         Sigma_peb = self._interp(self.dust['Sigma'][t, :, 1], r_emb)
         eta   = I(self.gas['eta'])
@@ -267,10 +308,12 @@ class PebbleAccretionModule3:
     # API / Loop Principal
     # ══════════════════════════════════════════════════════════════════════
 
-    def run_growth(self, embryo_locations_AU, M0_g=1e24):
+    def run_growth(self, embryo_locations_AU, M0_g=None):
+        if M0_g is None:
+            M0_g = 1e-3 * self.M_EARTH
         locs_outer_to_inner = sorted(embryo_locations_AU, reverse=True)
         M_core   = {r: float(M0_g)              for r in locs_outer_to_inner}
-        M_X      = {r: {sp: 0.0 for sp in self.comp} for r in locs_outer_to_inner}
+        M_X      = {r: {'H2O': 0.0, 'silicates': 0.0} for r in locs_outer_to_inner}
         active   = {r: True                      for r in locs_outer_to_inner}
         histories= {r: []                        for r in locs_outer_to_inner}
 
@@ -302,28 +345,13 @@ class PebbleAccretionModule3:
                 dM = min(dM, max(0.0, M_iso - M_core[r_au]))
                 flux_consumed += Mdot_core_r
 
-                if self._has_comp_sigma:
-                    # Denominador = Sigma_dust_total de tripodpy (suma sobre bins)
-                    # Esto es físicamente correcto: el pebble que cae tiene la
-                    # composición local del polvo, no solo de los volátiles.
-                    sig_dust_total = self._interp(self.dust['Sigma_total'][i], r_emb)
-
-                    if sig_dust_total > 1e-100:
-                        for sp in self._volatile_sps:
-                            sig_sp = self._interp(self.comp[sp][i], r_emb)
-                            # f_X = Sigma_X / Sigma_dust_total
-                            frac = np.clip(sig_sp / sig_dust_total, 0.0, 1.0)
-                            M_X[r_au][sp] = M_X[r_au].get(sp, 0.0) + frac * dM
-                        # silicatos implícitos: lo que no se asignó a volátiles
-                        # queda en M_core pero no en M_X (se recupera en summary)
-                    else:
-                        fracs = self._comp_from_snowlines(i, r_emb)
-                        for sp, frac in fracs.items():
-                            M_X[r_au][sp] = M_X[r_au].get(sp, 0.0) + frac * dM
+                if r_emb > (r_snow_AU * self.AU if not np.isnan(r_snow_AU) else 0.0):
+                    # Fuera de la snowline: 50% H2O, 50% Silicatos
+                    M_X[r_au]['H2O'] += 0.5 * dM
+                    M_X[r_au]['silicates'] += 0.5 * dM
                 else:
-                    fracs = self._comp_from_snowlines(i, r_emb)
-                    for sp, frac in fracs.items():
-                        M_X[r_au][sp] = M_X[r_au].get(sp, 0.0) + frac * dM
+                    # Dentro de la snowline: 100% Silicatos
+                    M_X[r_au]['silicates'] += dM
 
                 M_core[r_au] += dM
 
@@ -342,7 +370,7 @@ class PebbleAccretionModule3:
     def summary(self, results):
         """Imprime tabla resumen de composicion final con M_iso."""
         SEP = '-' * 80
-        vol_sps = self._volatile_sps if self._has_comp_sigma else ['H2O', 'CO2']
+        vol_sps = ['H2O']
         header_sps = '  '.join(f'{sp+"%":>7}' for sp in vol_sps)
         print(f"\n{SEP}")
         print(f"{'r [AU]':>8} {'M [ME]':>9} {'M_iso [ME]':>11}  {header_sps}  {'Sil%':>7}  Tipo")
