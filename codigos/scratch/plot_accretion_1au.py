@@ -2,9 +2,13 @@ import os
 import sys
 sys.path.insert(0, os.path.abspath('.'))
 import glob
-import numpy as np
+# pyrefly: ignore [missing-import]
+import numpy as np          
+# pyrefly: ignore [missing-import]
 import matplotlib.pyplot as plt
+# pyrefly: ignore [missing-import]
 import matplotlib.cm as cm
+# pyrefly: ignore [missing-import]
 import dustpy.constants as c
 from PA3Py.PebbleAccretion3 import PebbleAccretionModule3
 
