@@ -149,14 +149,18 @@ class SnowlinePhysicsMixin:
             return _updater
 
         for spec_name, T_sub in snowline_species.items():
-            field_name = f"rsnow_{spec_name}"
-            self.sim.grid.addfield(
+            if spec_name == "H2O":
+                field_name = "r_ice"
+            else:
+                field_name = f"rsnow_{spec_name}"
+            
+            self.sim.dust.addfield(
                 field_name,
                 0.0,
                 updater=make_rsnow_updater(T_sub),
                 description=f"Posición del snowline de {spec_name} [cm]",
                 save=True,
             )
-            getattr(self.sim.grid, field_name).update()
-            r_au = float(getattr(self.sim.grid, field_name)) / c.au
-            print(f"  → rsnow_{spec_name}  (T_sub = {T_sub:.0f} K):  {r_au:.2f} AU")
+            getattr(self.sim.dust, field_name).update()
+            r_au = float(getattr(self.sim.dust, field_name)) / c.au
+            print(f"  → {field_name} (T_sub = {T_sub:.0f} K):  {r_au:.2f} AU")

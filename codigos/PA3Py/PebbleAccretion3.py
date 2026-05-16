@@ -34,6 +34,11 @@ class PebbleAccretionModule3:
     M_EARTH = c.M_earth    # g
     AU      = c.au # cm
 
+    # Índice único de pebbles.
+    # Todos los arrays de polvo (Nr, 5) deben compartir el mismo índice físico.
+    # Los bins son: [a0, fudge*a1, a1, 0.5*amax, amax]. El último (-1) representa los pebbles.
+    peb_idx = -1
+
     _ABUNDANCES = {'H2O': 1.6e-4, 'CO2': 4.0e-5, 'CO': 8.0e-5, 'silicates': 2.0e-3}
 
     # ══════════════════════════════════════════════════════════════════════
@@ -48,8 +53,8 @@ class PebbleAccretionModule3:
 
         print(f"[from_datadir PA3Py] Leyendo {len(files)} snapshots desde {datadir}...")
         times_list, rsnow = [], {'H2O': [], 'CO2': [], 'CO': []}
-        gas_S, gas_T, gas_cs, gas_eta, gas_nu = [], [], [], [], []
-        dust_Sigma, dust_vr, dust_St = [], [], []
+        gas_S, gas_T, gas_cs, gas_eta, gas_nu, gas_alpha, gas_Hp = [], [], [], [], [], [], []
+        dust_Sigma, dust_vr, dust_St, dust_H = [], [], [], []
         OmegaK_list = []   # leemos del HDF5 directamente
         comp_sigma = {}   
         r_grid = None
@@ -78,15 +83,20 @@ class PebbleAccretionModule3:
                 gas_cs.append(f['gas/cs'][:])
                 gas_eta.append(f['gas/eta'][:])
                 gas_nu.append(f['gas/nu'][:])
+                
+                # Leemos alpha y Hp directamente en lugar de recalcularlos
+                gas_alpha.append(f['gas/alpha'][:])
+                gas_Hp.append(f['gas/Hp'][:])
 
                 for sp in ('H2O', 'CO2', 'CO'):
                     key = f'grid/rsnow_{sp}'
                     rsnow[sp].append(float(f[key][()]) if key in f else np.nan)
 
-                # Dust  — guardamos Sigma completo (Nt, Nr, 2)
+                # Dust  — guardamos Sigma y otras propiedades (Nt, Nr, 5)
                 dust_Sigma.append(f['dust/Sigma'][:])
                 dust_vr.append(f['dust/v/rad'][:])
                 dust_St.append(f['dust/St'][:])
+                dust_H.append(f['dust/H'][:])
 
                 # OmegaK — leer directamente del HDF5 (shape Nr,)
                 if 'grid/OmegaK' in f:
@@ -119,12 +129,15 @@ class PebbleAccretionModule3:
             'cs':    np.array(gas_cs),
             'eta':   np.array(gas_eta),
             'nu':    np.array(gas_nu),
+            'alpha': np.array(gas_alpha),
+            'Hp':    np.array(gas_Hp),
         }
         obj.dust = {
-            'Sigma':       np.array(dust_Sigma),         # (Nt, Nr, 2)
+            'Sigma':       np.array(dust_Sigma),         # (Nt, Nr, 5)
             'Sigma_total': np.array(dust_Sigma).sum(-1), # (Nt, Nr)  ← denominador de fracciones
             'vr':          np.array(dust_vr),
             'St':          np.array(dust_St),
+            'H':           np.array(dust_H),             # (Nt, Nr, 5)
         }
 
         if comp_sigma and all(len(v) > 0 for v in comp_sigma.values()):
@@ -143,17 +156,17 @@ class PebbleAccretionModule3:
             obj.Omega_K = np.array(OmegaK_list)   # (Nt, Nr) — del HDF5 (data.grid.OmegaK)
             obj._omegaK_2d = True
             print(f"[from_datadir PA3Py] OmegaK: leído del HDF5 — shape {obj.Omega_K.shape}")
-            # H_gas(Nt, Nr) usando OmegaK(Nt, Nr)
-            obj.H_gas = obj.gas['cs'] / obj.Omega_K
         else:
             # Fallback analítico (1D, sin variación temporal)
             obj.Omega_K = np.sqrt(obj.G_CGS * obj.M_star / obj.r**3)  # (Nr,)
             obj._omegaK_2d = False
             print("[from_datadir PA3Py] OmegaK: calculado analíticamente (fallback)")
-            obj.H_gas = obj.gas['cs'] / obj.Omega_K[np.newaxis, :]    # broadcast (Nt, Nr)
-        with np.errstate(divide='ignore', invalid='ignore'):
-            alpha_raw = obj.gas['nu'] / (obj.gas['cs'] * obj.H_gas)
-        obj.alpha = np.clip(np.where(np.isfinite(alpha_raw), alpha_raw, 1e-3), 1e-5, 1e-1)
+        
+        # Asignamos H_gas y alpha directamente desde la lectura del HDF5
+        # Evitamos cálculos manuales que puedan divergir de tripodpy
+        obj.H_gas = obj.gas['Hp']
+        obj.alpha = obj.gas['alpha']
+        
         return obj
 
     def _comp_from_snowlines(self, t_idx, r_emb):
@@ -217,22 +230,30 @@ class PebbleAccretionModule3:
             - alpha (float): Parámetro de viscosidad turbulenta de Shakura-Sunyaev.
             - St (float): Número de Stokes máximo del polvo (pebbles).
             - H_gas (float): Escala de altura del gas [cm].
+            - H_peb (float): Escala de altura de los pebbles [cm].
             - Omega (float): Frecuencia Kepleriana local [rad/s].
             - v_K (float): Velocidad Kepleriana local [cm/s].
             - v_hw (float): Velocidad del headwind (viento de cara) de los pebbles [cm/s].
         """
         I = lambda arr: self._interp(arr[t], r_emb)
-        Sigma_peb = self._interp(self.dust['Sigma'][t, :, 1], r_emb)
+        
+        # Usamos peb_idx de forma consistente para todas las propiedades (Nr, 5)
+        Sigma_peb = self._interp(self.dust['Sigma'][t, :, self.peb_idx], r_emb)
         eta   = I(self.gas['eta'])
-        St    = self._interp(self.dust['St'][t, :, -1], r_emb)
+        St    = self._interp(self.dust['St'][t, :, self.peb_idx], r_emb)
         H_gas = self._interp(self.H_gas[t], r_emb)
+        
+        # dust.H ya incluye sedimentación y mezcla turbulenta usando dust.delta.vert
+        # Evitamos inconsistencias entre viscosidad (gas.alpha) y mezcla vertical.
+        H_peb = self._interp(self.dust['H'][t, :, self.peb_idx], r_emb)
+        
         # OmegaK: (Nt, Nr) si viene del HDF5, (Nr,) si es fallback analítico
         omega_1d = self.Omega_K[t] if self._omegaK_2d else self.Omega_K
         Omega = float(np.interp(np.log(r_emb), np.log(self.r), omega_1d))
         v_K   = Omega * r_emb
         v_hw  = eta * v_K
         return dict(Sigma_peb=Sigma_peb, eta=eta, alpha=I(self.alpha),
-                    St=St, H_gas=H_gas, Omega=Omega, v_K=v_K, v_hw=v_hw)
+                    St=St, H_gas=H_gas, H_peb=H_peb, Omega=Omega, v_K=v_K, v_hw=v_hw)
 
     # ══════════════════════════════════════════════════════════════════════
     # Física Ormel 2017 & Drążkowska et al. 2023
@@ -243,8 +264,8 @@ class PebbleAccretionModule3:
         Ṁ_peb = 2π r Σ_peb |v_r|
         Mantenemos lectura directa de tripodpy para conservación real de masa.
         """
-        Sigma_peb = self._interp(self.dust['Sigma'][t, :, 1], r_emb)
-        v_r       = self._interp(self.dust['vr'][t, :, -1],   r_emb)
+        Sigma_peb = self._interp(self.dust['Sigma'][t, :, self.peb_idx], r_emb)
+        v_r       = self._interp(self.dust['vr'][t, :, self.peb_idx],   r_emb)
         return 2 * np.pi * r_emb * Sigma_peb * abs(v_r)
 
     def _isolation_mass(self, r_emb, t):
@@ -272,19 +293,20 @@ class PebbleAccretionModule3:
         # Onset of Pebble Accretion (Eq. 3 / Eq. 7.11 sin 1/8)
         M_PA_onset = St * (p['eta']**3) * self.M_star
 
-        # Capa de pebbles (Ec 7.25 Ormel)
-        H_peb = p['H_gas'] * np.sqrt(p['alpha'] / (p['alpha'] + St))
-        H_peb = max(H_peb, 1e-10 * p['H_gas'])
+        # Capa de pebbles
+        # Ya no calculamos H_peb manualmente. Se lee dust.H directamente que incluye la mezcla vertical.
+        H_peb = max(p['H_peb'], 1e-10 * p['H_gas'])
         rho_peb = Sigma / (np.sqrt(2 * np.pi) * H_peb)
 
         # Régimen Pre-Pebble / Safronov Balístico (Ormel Ec 7.14)
-        if M < M_PA_onset:
-            rho_core = 3.0  # g/cm3 asumiendo rocoso
-            R_pl = (3 * M / (4 * np.pi * rho_core))**(1/3)
-            # Factor de corrección a evitar divergencias extremas
-            v_impact = max(v_hw, 1.0) 
-            Mdot_Saf = (2 * np.pi * R_pl * G * M / v_impact) * rho_peb
-            return Mdot_Saf
+        # DESACTIVADO por solicitud del usuario para forzar crecimiento rápido
+        # if M < M_PA_onset:
+        #     rho_core = 3.0  # g/cm3 asumiendo rocoso
+        #     R_pl = (3 * M / (4 * np.pi * rho_core))**(1/3)
+        #     # Factor de corrección a evitar divergencias extremas
+        #     v_impact = max(v_hw, 1.0) 
+        #     Mdot_Saf = (2 * np.pi * R_pl * G * M / v_impact) * rho_peb
+        #     return Mdot_Saf
 
         # Masa de transición Headwind/Shear (Ormel Ec 7.9)
         M_hw_sh = (v_hw**3) / (8 * G * Omega * St)

@@ -8,7 +8,7 @@ WaterworldPipeline integra todos los módulos del pipeline a través de mixins:
       → setup_grid()
       → setup_star()
       → initialize_simulation()
-      → setup_star_evolution()
+
 
     DiskChemistryMixin     (disk_chemistry.py)
       → add_volatile_components()
@@ -32,7 +32,6 @@ Uso típico
     pipeline.initialize_simulation()
     pipeline.add_volatile_components()
     pipeline.setup_physics()
-    pipeline.setup_star_evolution()
     pipeline.add_snowline_fields()
     pipeline.add_ice_sigma_fields()
     pipeline.sim.update()
@@ -40,7 +39,6 @@ Uso típico
 """
 
 import math
-
 import numpy as np
 import dustpy.constants as c
 from tripodpy import Simulation
@@ -84,30 +82,36 @@ class WaterworldPipeline(
         Parámetros estelares en unidades solares / Kelvin.
     """
 
-    def __init__(self, datadir="output_pipeline"):
+    def __init__(
+        self, 
+        datadir="output_pipeline",
+        active_species=None,
+        grid_rmin=1.0 * c.au,
+        grid_rmax=300.0 * c.au,
+        Nr=200,
+        M_star_Msun=1.0,
+        R_star_Rsun=2.0,
+        T_star_K=5778.0,
+        gap_positions_au=None,
+        snowline_au=2.0,
+        alpha_gas=1e-3,
+        M_disk_Msun=0.05 , # en masas solares, luego se convierte cgs
+    ):
         self.sim     = Simulation()
         self.datadir = datadir
-
-        # ── Parámetros estelares ──────────────────────────────────────────────
-        self.M_star_Msun = 1.0      # [M_sun]
-        self.R_star_Rsun = 2.0      # [R_sun]  radio joven inflado (Baraffe+ 2015)
-        self.T_star_K    = 5778.0   # [K]      temperatura efectiva solar
+        
+        self.alpha_gas = alpha_gas
+        self.M_disk_Msun = M_disk_Msun
 
         # ── Especies activas ──────────────────────────────────────────────────
-        # Modificar ANTES de add_volatile_components().
-        # Deben estar definidas en chem.txt.
-        #   ["H2O"]               → solo agua
-        #   ["H2O", "CO2"]        → agua + CO2
-        #   ["H2O", "CO2", "CO"]  → completo (default)
-        self.active_species = ["H2O", "CO2", "CO"]
+        self.active_species = active_species if active_species is not None else ["H2O", "CO2", "CO"]
+
+        # ── Parámetros estelares ──────────────────────────────────────────────
+        self.M_star_Msun = M_star_Msun      # [M_sun]
+        self.R_star_Rsun = R_star_Rsun      # [R_sun]  
+        self.T_star_K    = T_star_K         # [K]      
 
         # ── Velocidades de fragmentación del hielo ────────────────────────────
-        # Modificar ANTES de setup_physics() para cambiar la física de colisiones.
-        # Referencias:
-        #   Silicatos (baseline) : Birnstiel et al. (2012) A&A 539, A148
-        #   H2O ice              : Gundlach & Blum (2015)  ApJ 798, 34
-        #   CO2 ice              : Gundlach et al. (2018)  MNRAS 479, 1273
-        #   CO  ice              : Dominik & Tielens (1997) ApJ 480, 647
         self.vfrag_params = {
             "H2O": (150.0, 1000.0),   # (T_sub [K], v_frag [cm/s])
             "CO2": ( 70.0,  500.0),
@@ -116,20 +120,34 @@ class WaterworldPipeline(
         self.vfrag_silicates = 100.0   # baseline refractario [cm/s]
 
         # ── Parámetros de gap planetario (PressureBumpsMixin) ─────────────────
-        # Modificar ANTES de setup_gap_kanagawa() o setup_gap_duffell().
-        # O pasar directamente como argumentos a cada método.
-        #
-        # IMPORTANTE: gap_alpha_ref es un escalar fijo capturado en el closure
-        # del updater. NO se usa sim.gas.alpha para evitar circularidad.
-        #
-        # M_planet se da en CGS (gramos). Ejemplos:
-        #   1.0 * c.M_jup    → Júpiter (~gap profundo)
-        #   0.3 * c.M_jup    → Saturno (~gap intermedio)
-        #   30. * c.M_earth  → ~0.1 M_Jup (pressure bump parcial)  ← default
-        #   2.  * c.M_earth  → Super-Tierra (bump muy suave)
         self.gap_alpha_ref   = 1e-3               # α de referencia [adim]
         self.gap_a_planet_au = 5.0                # semieje del planeta [AU]
         self.gap_M_planet    = 30. * c.M_earth    # masa del planeta [g — CGS]
+
+        # ── Configuración automática de la simulación ─────────────────────────
+        # 1. Configuración de malla y estrella
+        self.setup_grid(rmin=grid_rmin, rmax=grid_rmax, Nr=Nr)
+        self.setup_star(M_star_Msun=self.M_star_Msun, R_star_Rsun=self.R_star_Rsun, T_star_K=self.T_star_K)
+
+        # 2. Refinamiento automático de la grilla (si el usuario provee posiciones)
+        if gap_positions_au is not None:
+            self.setup_refined_grid(gap_positions_au=gap_positions_au, snowline_au=snowline_au)
+
+        # 3. Inicialización de los parámetros del gas base (previo a initialize)
+        self.sim.ini.gas.alpha = self.alpha_gas
+        self.sim.ini.gas.Mdisk = self.M_disk_Msun * c.M_sun
+
+        # 4. Inicialización del motor base
+        self.initialize_simulation()
+
+        # 5. Química y Física de snowlines automáticas
+        self.add_volatile_components()
+        self.setup_physics()
+        self.add_snowline_fields()
+        self.add_ice_sigma_fields()
+        
+        # 6. Sincronización final pre-run
+        self.sim.update()
 
 
     # ══════════════════════════════════════════════════════════════════════════
@@ -176,29 +194,23 @@ class WaterworldPipeline(
 # ══════════════════════════════════════════════════════════════════════════════
 
 if __name__ == "__main__":
-    pipeline = WaterworldPipeline("data/post_pipeline/pipeline_v4")
+    # Inicialización automática de todo el disco y física
+    pipeline = WaterworldPipeline(
+        datadir="data/post_pipeline/pipeline_v4",
+        active_species=["H2O", "CO2", "CO"],
+        grid_rmin=1 * c.au,
+        grid_rmax=300 * c.au,
+        Nr=200,
+        M_star_Msun=1.0,
+        R_star_Rsun=2.0,
+        T_star_K=5778.0,
+    )
 
-    # 1. Grilla y estrella
-    pipeline.active_species = ["H2O", "CO2", "CO"]
-    pipeline.setup_grid(rmin=1 * c.au, rmax=300 * c.au, Nr=200)
-    pipeline.setup_star()                  # 1 M☉, 2 R☉, 5778 K
+    # Si quisiéramos agregar un gap, lo haríamos aquí:
+    # pipeline.setup_gap_duffell(M_planet=317.8*c.M_earth, a_planet_au=5.0)
+    # pipeline.sim.update()
 
-    # 2. Inicializar tripodpy
-    pipeline.initialize_simulation()
-
-    # 3. Química del disco
-    pipeline.add_volatile_components()     # H2O, CO2, CO + silicatos
-
-    # 4. Física de snowlines
-    pipeline.setup_physics()               # v_frag(T) multi-especie
-    pipeline.setup_star_evolution()        # contracción pre-MS → snowlines migran
-    pipeline.add_snowline_fields()         # rsnow_H2O/CO2/CO → HDF5
-
-    # 5. Fields de composición en HDF5
-    pipeline.add_ice_sigma_fields()        # SigmaDust/SigmaGas por componente
-
-    # 6. Sincronización y run
-    pipeline.sim.update()
+    # Ejecutar integración
     pipeline.run_integration(t_end_years=1e6, num_snapshots=50)
 
     print("\nPipeline completado.")

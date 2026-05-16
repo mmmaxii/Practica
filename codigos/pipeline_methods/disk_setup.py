@@ -6,7 +6,6 @@ Mixin para WaterworldPipeline que agrupa:
   - setup_grid()             → grilla radial
   - setup_star()             → parámetros estelares (M, R, T)
   - initialize_simulation()  → llama a sim.initialize()
-  - setup_star_evolution()   → contracción pre-MS (Hayashi track)
 """
 
 import numpy as np
@@ -181,53 +180,7 @@ class DiskSetupMixin:
 
 
 
-    def setup_star_evolution(self, R_fin_Rsun=1.5, t_contract_yr=1.0e7):
-        """
-        Configura la contracción estelar pre-secuencia principal (Hayashi track).
 
-        El radio estelar decrece linealmente desde R_ini (fijado en setup_star)
-        hasta R_fin durante t_contract años. Pasado ese tiempo, R se fija en
-        R_fin (llegada a la ZAMS).
-
-        Parameters
-        ----------
-        R_fin_Rsun : float
-            Radio final (ZAMS) [R_sun]. Default: 1.5.
-        t_contract_yr : float
-            Tiempo de Kelvin-Helmholtz [yr]. Default: 1e7 (Hayashi 1961).
-
-        Notes
-        -----
-        Las constantes del closure se capturan UNA sola vez al llamar este
-        método, no en cada timestep, evitando bugs si self.R_star_Rsun cambia
-        posteriormente.
-        """
-        print("Configurando evolución estelar (contracción del radio)...")
-
-        R_ini_cgs      = float(self.sim.star.R)          # [cm] — ya en CGS
-        R_fin_cgs      = R_fin_Rsun    * c.R_sun          # [cm]
-        t_contract_cgs = t_contract_yr * c.year           # [s]
-
-        if R_ini_cgs <= R_fin_cgs:
-            print(f"  [!] R_ini ({self.R_star_Rsun:.2f} R☉) ≤ R_fin ({R_fin_Rsun:.2f} R☉): "
-                  f"no hay contracción posible. sim.star.R permanece estático.")
-            return
-
-        slope = (R_fin_cgs - R_ini_cgs) / t_contract_cgs   # < 0 (contracción)
-
-        print(f"  → R_ini = {self.R_star_Rsun:.2f} R☉  →  R_fin = {R_fin_Rsun:.2f} R☉  "
-              f"en {t_contract_yr:.1e} yr")
-        print(f"  → dR/dt = {slope / c.R_sun * c.year:.3e} R☉/yr")
-
-        def R_star_evolving(sim):
-            R = R_ini_cgs + slope * sim.t
-            return float(np.maximum(R, R_fin_cgs))   # clamp al radio ZAMS
-
-        self.sim.star.R.updater.updater = R_star_evolving
-        self.sim.star.R.update()
-
-        r_now = float(self.sim.star.R) / c.R_sun
-        print(f"  → R(t=0) = {r_now:.4f} R☉  (esperado: {self.R_star_Rsun:.2f} R☉)")
 
     # ══════════════════════════════════════════════════════════════════════════
     # Reinicio desde dump (restart)
