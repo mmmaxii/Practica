@@ -40,10 +40,14 @@ class DiskChemistryMixin:
           - Silicatos de fondo: dust_active=True, gas_active=False,  rhos=3.5 g/cm³
           - Llamar dust.rhos.update() al final para que tripodpy recalcule rhos
         """
+        import os
         print("Agregando componentes (volátiles + silicatos) desde chem.txt...")
 
+        base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        chem_path = os.path.join(base_dir, 'chem.txt')
+
         data = np.genfromtxt(
-            'chem.txt',
+            chem_path,
             dtype=None,
             names=True,
             encoding='utf-8',

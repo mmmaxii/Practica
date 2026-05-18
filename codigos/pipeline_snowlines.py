@@ -86,14 +86,14 @@ class WaterworldPipeline(
         self, 
         datadir="output_pipeline",
         active_species=None,
-        grid_rmin=1.0 * c.au,
-        grid_rmax=300.0 * c.au,
-        Nr=200,
+        grid_rmin=0.5 * c.au,
+        grid_rmax=100.0 * c.au,
+        Nr=300,
         M_star_Msun=1.0,
-        R_star_Rsun=2.0,
-        T_star_K=5778.0,
+        R_star_Rsun=2.1,  # ~2.1 R_sun para T Tauri con L=1 L_sun y T=4000K
+        T_star_K=4000.0,   # T Tauri star
         gap_positions_au=None,
-        snowline_au=2.0,
+        snowline_au=2.7,
         alpha_gas=1e-3,
         M_disk_Msun=0.05 , # en masas solares, luego se convierte cgs
     ):
@@ -142,8 +142,8 @@ class WaterworldPipeline(
 
         # 5. Química y Física de snowlines automáticas
         self.add_volatile_components()
-        self.setup_physics()
         self.add_snowline_fields()
+        self.setup_physics()
         self.add_ice_sigma_fields()
         
         # 6. Sincronización final pre-run
@@ -202,8 +202,8 @@ if __name__ == "__main__":
         grid_rmax=300 * c.au,
         Nr=200,
         M_star_Msun=1.0,
-        R_star_Rsun=2.0,
-        T_star_K=5778.0,
+        R_star_Rsun=2.08,
+        T_star_K=4000.0,
     )
 
     # Si quisiéramos agregar un gap, lo haríamos aquí:

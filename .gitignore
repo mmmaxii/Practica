@@ -18,7 +18,7 @@ codigos/data_postpost_pipeline
 codigos/all
 
 codigos/data_gaps_pipeline
-
+data
 
 codigos/figs_gaps_pipeline
 
@@ -28,3 +28,7 @@ codigos/data_1e5
 codigos/figures/
 codigos/data/
 codigos/notebooks
+codigos/output_10kyr_oka
+codigos/scratch/Pre oka and hartmann
+
+ 

@@ -183,7 +183,7 @@ class DiskSetupMixin:
 
 
     # ══════════════════════════════════════════════════════════════════════════
-    # Reinicio desde dump (restart)
+    # Reinicio desde dump (restart) La verdad es mejor hacer la sim denuevo
     # ══════════════════════════════════════════════════════════════════════════
 
     @staticmethod
