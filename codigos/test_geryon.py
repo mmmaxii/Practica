@@ -13,6 +13,8 @@ pbs_content_1 = f"""#PBS -S /bin/bash
 #PBS -V
 #PBS -N {job_name_1}
 #PBS -j eo
+#PBS -M m.valderrama.geryon2@gmail.com
+#PBS -m abe
 #PBS -l select=1:ppn=1
 #PBS -l walltime=10:00:00
 
@@ -36,6 +38,8 @@ pbs_content_2 = f"""#PBS -S /bin/bash
 #PBS -V
 #PBS -N {job_name_2}
 #PBS -j eo
+#PBS -M m.valderrama.geryon2@gmail.com
+#PBS -m abe
 #PBS -l select=1:ppn=1
 #PBS -l walltime=10:00:00
 

@@ -20,8 +20,10 @@ for r, m, a in itertools.product(r_gap, M_gap, alphas):
 #PBS -V
 #PBS -N {job_name}
 #PBS -j eo
+#PBS -M m.valderrama.geryon2@gmail.com
+#PBS -m a
 #PBS -l select=1:ppn=1
-#PBS -l walltime=40:00:00
+#PBS -l walltime=48:00:00
 
 cd $PBS_O_WORKDIR
 
@@ -42,4 +44,4 @@ python simulador_geryon.py {r} {m} {a}
     subprocess.run(["qsub", script_file])
     os.remove(script_file)
 
-print("¡Las 84 configuraciones de gaps han sido enviadas a la cola!")
+print("Las 84 configuraciones de gaps han sido enviadas a la cola")
