@@ -22,20 +22,6 @@ WaterworldPipeline integra todos los módulos del pipeline a través de mixins:
       → setup_gap_kanagawa()
       → setup_gap_duffell()
       → reset_gap()
-
-Uso típico
-----------
-    pipeline = WaterworldPipeline("mi_run/")
-    pipeline.active_species = ["H2O", "CO2", "CO"]
-    pipeline.setup_grid(rmin=1*c.au, rmax=300*c.au, Nr=200)
-    pipeline.setup_star(M_star_Msun=1.0)
-    pipeline.initialize_simulation()
-    pipeline.add_volatile_components()
-    pipeline.setup_physics()
-    pipeline.add_snowline_fields()
-    pipeline.add_ice_sigma_fields()
-    pipeline.sim.update()
-    pipeline.run_integration(t_end_years=1e6, num_snapshots=50)
 """
 
 import math
@@ -103,7 +89,6 @@ class WaterworldPipeline(
         
         self.alpha_gas = alpha_gas
         self.M_disk_Msun = M_disk_Msun
-        self.v_frag_m_s = v_frag_m_s
 
         # ── Especies activas ──────────────────────────────────────────────────
         self.active_species = active_species if active_species is not None else ["H2O", "CO2", "CO"]
@@ -131,7 +116,7 @@ class WaterworldPipeline(
         self.setup_grid(rmin=grid_rmin, rmax=grid_rmax, Nr=Nr)
         self.setup_star(M_star_Msun=self.M_star_Msun, R_star_Rsun=self.R_star_Rsun, T_star_K=self.T_star_K)
 
-        # 2. Refinamiento automático de la grilla (si el usuario provee posiciones)
+        # 2. Refinamiento automático de la grilla 
         if gap_positions_au is not None:
             self.setup_refined_grid(gap_positions_au=gap_positions_au, snowline_au=snowline_au)
 
