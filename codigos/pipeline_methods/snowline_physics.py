@@ -70,9 +70,9 @@ class SnowlinePhysicsMixin:
             r_snow = float(sim.dust.r_snow)
             
             # v_frag_silicates = 100 cm/s (usualmente)
-            # v_ice = 1000 cm/s
+            # v_ice ahora dependerá del parámetro v_frag_m_s que se pasa al pipeline
             v_refractory = self.vfrag_silicates
-            v_ice = 1000.0 # Valor físico estándar para hielo (Gundlach & Blum 2015)
+            v_ice = self.v_frag_m_s * 100.0
             
             # Condición: si r < r_snow -> polvo seco frágil, si r >= r_snow -> hielo resistente
             vf = np.where(sim.grid.r < r_snow, v_refractory, v_ice)

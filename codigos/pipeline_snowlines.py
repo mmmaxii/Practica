@@ -95,13 +95,15 @@ class WaterworldPipeline(
         gap_positions_au=None,
         snowline_au=2.7,
         alpha_gas=1e-3,
-        M_disk_Msun=0.05 , # en masas solares, luego se convierte cgs
+        M_disk_Msun=0.05,  # en masas solares, luego se convierte cgs
+        v_frag_m_s=10.0,   # velocidad de fragmentación [m/s]
     ):
         self.sim     = Simulation()
         self.datadir = datadir
         
         self.alpha_gas = alpha_gas
         self.M_disk_Msun = M_disk_Msun
+        self.v_frag_m_s = v_frag_m_s
 
         # ── Especies activas ──────────────────────────────────────────────────
         self.active_species = active_species if active_species is not None else ["H2O", "CO2", "CO"]
@@ -113,7 +115,7 @@ class WaterworldPipeline(
 
         # ── Velocidades de fragmentación del hielo ────────────────────────────
         self.vfrag_params = {
-            "H2O": (150.0, 1000.0),   # (T_sub [K], v_frag [cm/s])
+            "H2O": (150.0, v_frag_m_s * 100.0),   # (T_sub [K], v_frag [cm/s])
             "CO2": ( 70.0,  500.0),
             "CO" : ( 25.0,  300.0),
         }

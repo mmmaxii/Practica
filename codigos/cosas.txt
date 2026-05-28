@@ -110,3 +110,6 @@ polvo y pebble estariamos hacienod una sobrestimacion terrible. Pero la explorac
 1 AU, lejos del gap, por lo tanto tripodpy ya nos da drift de polvo, fragmentacion, acrecion estelar mitigan este problema. De 
 todas formas es una limitancion que debe ser mencionada.
 
+
+Ahora necesito crear los jbos para mandar hacer jobs  con gaps de con forma sinusidal, lo que si, este seran 
+con una amplitud moderada, no se como hacerlo, pero necestio saber cual srea la amplitud necesraia para que 1 gap sea parecido a un gap producido por un planeta tipo M_jup, quizas sea bueno comprar los alpha min o max que genera el gap solitario y luego ver cual es el min o max generado por l apampitud y luego ir vairando para ver cual sera la configracion optima o amplitud que genera un gap parecido a 1M_jup y ver si se cimple la misma proprcion para un gap de 0.1 por favor, 
