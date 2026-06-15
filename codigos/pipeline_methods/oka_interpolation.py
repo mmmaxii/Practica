@@ -69,11 +69,11 @@ def mdot_time(t_myr, eta=1.5):
     t_myr = np.maximum(t_myr, 1e-6) 
     return mdot_1myr * (t_myr)**(-eta)
 
-def r_snow_time_cgs(t_sec, eta=1.5):
+def r_snow_time_cgs(t_sec, eta=1.5, r_min_au=0.5):
     """
     Función principal para la simulación tripodpy.
     Dada el tiempo en segundos (sim.t), calcula la posición del snowline
-    en centímetros (CGS), aplicando un corte inferior estricto de 0.5 AU.
+    en centímetros (CGS), aplicando un corte inferior estricto dictado por la grilla.
 
     Physical interpretation of the snowline evolution:
 
@@ -107,9 +107,9 @@ def r_snow_time_cgs(t_sec, eta=1.5):
     m_eff = min(m, 1e-7)
     r_au = get_rsnow_from_mdot_au(m_eff)
     
-    # 4. Forzar límite inferior de 0.5 AU y límite superior de 2.73 AU
+    # 4. Forzar límite inferior dinámico (r_min de la grilla) y límite superior de 2.73 AU
     # (El cap de m_eff ya debería dar ~2.72-2.73, pero aseguramos explícitamente)
-    r_au_limited = np.clip(r_au, 0.5, 2.73)
+    r_au_limited = np.clip(r_au, r_min_au, 2.73)
     
     # 5. Retornar en CGS
     return float(r_au_limited * c.au)

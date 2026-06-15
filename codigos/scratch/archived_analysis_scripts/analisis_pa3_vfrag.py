@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 """
-analisis_pa3_10myr.py
+analisis_pa3_vfrag.py
 ---------------------
-Extrae la evolución del embrión (usando PA3Py) para las simulaciones de 10Myr
-completadas, y genera gráficos de gradiente de evolución temporal y mapas de calor.
+Extrae la evolución del embrión (usando PA3Py) para las simulaciones 
+con distintas velocidades de fragmentación y genera los mismos gráficos.
 """
 
 import os
@@ -34,13 +34,8 @@ import dustpy.constants as c
 # ==============================================================================
 # CONFIGURACIÓN DEL USUARIO
 # ==============================================================================
-M0_EARTH = 0.01       # Masa inicial del embrión en masas terrestres
+M0_EARTH_VALUES = [0.0001, 0.001]  # Masas iniciales del embrión en masas terrestres
 EMBRYO_AU = 1.0       # Posición del embrión en AU
-BASE_DIR = "data/runs/10Myr_round0.1"
-FIG_DIR = f"data/figures/10Myr_round0.1_M0_{M0_EARTH}"
-CACHE_FILE = f"data/runs/10Myr_round0.1_pa3_cache_M0_{M0_EARTH}.pkl"
-
-os.makedirs(FIG_DIR, exist_ok=True)
 # ==============================================================================
 
 def parse_run_name(run_name):
@@ -50,25 +45,27 @@ def parse_run_name(run_name):
     a_val = float(parts[3][1:])
     return r_val, m_val, a_val
 
-def get_completed_runs():
-    runs = glob.glob(os.path.join(BASE_DIR, "run_*"))
-    completed = []
+def get_target_runs(base_dir):
+    runs = glob.glob(os.path.join(base_dir, "run_*"))
+    target_runs = []
     for rpath in runs:
-        if os.path.exists(os.path.join(rpath, "data0099.hdf5")):
-            completed.append(rpath)
-    completed.sort()
-    return completed
+        if os.path.isdir(rpath):
+            completed = os.path.exists(os.path.join(rpath, "data0099.hdf5"))
+            if os.path.exists(os.path.join(rpath, "data0000.hdf5")):
+                target_runs.append((rpath, completed))
+    target_runs.sort()
+    return target_runs
 
-def extract_data():
-    runs = get_completed_runs()
+def extract_data(base_dir, cache_file, m0_earth):
+    runs_info = get_target_runs(base_dir)
     data = {}
     
-    print(f"Iniciando extracción PA3 para {len(runs)} simulaciones completas...")
-    for i, rpath in enumerate(runs):
+    print(f"Iniciando extracción PA3 para {len(runs_info)} simulaciones en {base_dir}...")
+    for i, (rpath, completed) in enumerate(runs_info):
         run_name = os.path.basename(rpath)
         r_gap, M_gap, alpha = parse_run_name(run_name)
         
-        print(f"[{i+1}/{len(runs)}] Procesando {run_name} ...")
+        print(f"[{i+1}/{len(runs_info)}] Procesando {run_name} ...")
         
         try:
             pa3 = PebbleAccretionModule3.from_datadir(rpath, M_star=1.0)
@@ -76,7 +73,7 @@ def extract_data():
             print(f"  Error cargando HDF5 en {run_name}: {e}")
             continue
             
-        res = pa3.run_growth([EMBRYO_AU], M0_g=M0_EARTH * c.M_earth)
+        res = pa3.run_growth([EMBRYO_AU], M0_g=m0_earth * c.M_earth)
         hist = res[EMBRYO_AU]
         
         if len(hist) == 0:
@@ -105,15 +102,16 @@ def extract_data():
             'times_yr': times_yr,
             'mass_e': mass_e,
             'frac_h2o_final': frac_h2o_final,
-            't_cross_1au': t_cross_1au
+            't_cross_1au': t_cross_1au,
+            'completed': completed
         })
         
-    with open(CACHE_FILE, 'wb') as f:
+    with open(cache_file, 'wb') as f:
         pickle.dump(data, f)
         
     return data
 
-def plot_lines_grouped_by_rgap(data_alpha, alpha_val):
+def plot_lines_grouped_by_rgap(data_alpha, alpha_val, fig_dir, v_frag, m0_earth):
     groups = {}
     for item in data_alpha:
         rg = item['r_gap']
@@ -121,15 +119,10 @@ def plot_lines_grouped_by_rgap(data_alpha, alpha_val):
         groups[rg].append(item)
         
     r_gaps = sorted(list(groups.keys()))
-    n_rg = len(r_gaps)
     
-    cols = 3
-    rows = (n_rg + cols - 1) // cols
+    fig, axes = plt.subplots(2, 2, figsize=(14, 11))
+    fig.suptitle(rf"$\alpha = {alpha_val}$ | $v_{{frag}} = {v_frag}$ m/s", fontsize=18)
     
-    fig, axes = plt.subplots(rows, cols, figsize=(16, 5 * rows))
-    fig.suptitle(rf"$\alpha = {alpha_val}$", fontsize=18)
-    
-    if not isinstance(axes, np.ndarray): axes = np.array([axes])
     axes = axes.flatten()
     
     cmap = plt.get_cmap('viridis')
@@ -142,31 +135,21 @@ def plot_lines_grouped_by_rgap(data_alpha, alpha_val):
         
         runs_rg = sorted(groups[rg], key=lambda x: x['M_gap'])
         t_cross_avg = []
-        reached_iso_local = False
         
         for item in runs_rg:
             color = cmap(norm(item['M_gap']))
+            ls = '-' if item.get('completed', True) else ':'
             
-            times = np.copy(item['times_yr'])
-            mass = np.copy(item['mass_e'])
-            if len(times) > 0 and times[-1] < 1e7:
-                reached_iso_local = True
-                times = np.append(times, 1e7)
-                mass = np.append(mass, mass[-1])
-                ax.axhline(np.log10(mass[-1]), color='gray', ls=':', alpha=0.8, zorder=1)
-                
-            t_myr_log = np.log10(times / 1e6)
-            mass_e_log = np.log10(mass)
+            t_myr_log = np.log10(item['times_yr'] / 1e6)
+            mass_e_log = np.log10(item['mass_e'])
             
-            # Limpiar valores infinitos si el tiempo inicial es 0
             mask = np.isfinite(t_myr_log) & np.isfinite(mass_e_log)
             
-            ax.plot(t_myr_log[mask], mass_e_log[mask], color=color, alpha=0.8, lw=2.5)
+            ax.plot(t_myr_log[mask], mass_e_log[mask], color=color, alpha=0.8, lw=2.5, ls=ls)
             if item['t_cross_1au']: t_cross_avg.append(np.log10(item['t_cross_1au'] / 1e6))
             
-        ax.set_xlim([-3, 1]) # Log(t) desde -3 (10^3 años) hasta 1 (10^7 años)
+        ax.set_xlim([-3, 1])
         
-        # Limite Y local a cada figura específica
         min_m_local = np.nanmin([np.nanmin(np.log10(item['mass_e'])) for item in runs_rg])
         max_m_local = np.nanmax([np.nanmax(np.log10(item['mass_e'])) for item in runs_rg])
         
@@ -179,46 +162,28 @@ def plot_lines_grouped_by_rgap(data_alpha, alpha_val):
         if t_cross_avg:
             t_med = np.median(t_cross_avg)
             label = "Snowline a 1au" if i == 0 else None
-            ax.axvline(t_med, color='black', ls='--', alpha=0.3, lw=2.0, label=label)
+            ax.axvline(t_med, color='black', ls='--', alpha=0.6, lw=2.0, label=label)
             
-        row = i // cols
-        col = i % cols
-        
-        if col == 0:
-            ax.set_ylabel(r"$\log(M_{\mathrm{emb}}) \ [M_\oplus]$")
-            
-        # Para el grid de R_gap, usamos la última fila activa (o la última fila de la columna)
-        last_in_col = max([idx for idx in range(n_rg) if idx % cols == col])
-        if i == last_in_col:
-            ax.set_xlabel(r"$\log(t) \ [\mathrm{Myr}]$")
+        if i % 2 == 0:
+            ax.set_ylabel(r"Log(M_embrion [$M_\oplus$])")
+        if i >= 2:
+            ax.set_xlabel("Log(t [Myr])")
             
         if i == 0:
             from matplotlib.lines import Line2D
             custom_lines = [Line2D([0], [0], color=cmap(norm(mg)), lw=2.5) for mg in all_mgaps]
             labels = [f"{mg} $M_{{\mathrm{{Jup}}}}$" for mg in all_mgaps]
             if t_cross_avg:
-                custom_lines.append(Line2D([0], [0], color='black', ls='--', alpha=0.3, lw=2.0))
+                custom_lines.append(Line2D([0], [0], color='black', ls='--', alpha=0.6, lw=2.0))
                 labels.append("Snowline a 1au")
-            if reached_iso_local:
-                custom_lines.append(Line2D([0], [0], color='gray', ls=':', alpha=0.8, lw=2.0))
-                labels.append("Isolation Mass")
-                
-            ax.legend(custom_lines, labels, loc="upper left", fontsize=14)
-        else:
-            if reached_iso_local:
-                from matplotlib.lines import Line2D
-                custom_lines = [Line2D([0], [0], color='gray', ls=':', alpha=0.8, lw=2.0)]
-                ax.legend(custom_lines, ["Isolation Mass"], loc="upper left", fontsize=14)
-
-    for j in range(n_rg, len(axes)):
-        axes[j].set_visible(False)
+            ax.legend(custom_lines, labels, loc="upper left", fontsize=11)
 
     plt.tight_layout()
     plt.subplots_adjust(top=0.92)
-    plt.savefig(os.path.join(FIG_DIR, f"evo_rgap_a{alpha_val}_M0_{M0_EARTH}.png"), dpi=200, bbox_inches='tight')
+    plt.savefig(os.path.join(fig_dir, f"evo_rgap_a{alpha_val}_M0_{m0_earth}.png"), dpi=200, bbox_inches='tight')
     plt.close()
 
-def plot_lines_grouped_by_mgap(data_alpha, alpha_val):
+def plot_lines_grouped_by_mgap(data_alpha, alpha_val, fig_dir, v_frag, m0_earth):
     groups = {}
     for item in data_alpha:
         mg = item['M_gap']
@@ -232,7 +197,7 @@ def plot_lines_grouped_by_mgap(data_alpha, alpha_val):
     rows = (n_mg + cols - 1) // cols
     
     fig, axes = plt.subplots(rows, cols, figsize=(16, 5 * rows))
-    fig.suptitle(rf"$\alpha = {alpha_val}$", fontsize=18)
+    fig.suptitle(rf"$\alpha = {alpha_val}$ | $v_{{frag}} = {v_frag}$ m/s", fontsize=18)
     
     if not isinstance(axes, np.ndarray): axes = np.array([axes])
     axes = axes.flatten()
@@ -246,38 +211,28 @@ def plot_lines_grouped_by_mgap(data_alpha, alpha_val):
         ax.set_title(f"Profundidad: {mg} $M_{{\mathrm{{Jup}}}}$")
         runs_mg = sorted(groups[mg], key=lambda x: x['r_gap'])
         t_cross_avg = []
-        reached_iso_local = False
         
         for k, item in enumerate(runs_mg):
             color = cmap(norm(item['r_gap']))
+            ls = '-' if item.get('completed', True) else ':'
             
-            times = np.copy(item['times_yr'])
-            mass = np.copy(item['mass_e'])
-            if len(times) > 0 and times[-1] < 1e7:
-                reached_iso_local = True
-                times = np.append(times, 1e7)
-                mass = np.append(mass, mass[-1])
-                ax.axhline(np.log10(mass[-1]), color='gray', ls=':', alpha=0.8, zorder=1)
-            
-            t_myr_log = np.log10(times / 1e6)
-            mass_e_log = np.log10(mass)
+            t_myr_log = np.log10(item['times_yr'] / 1e6)
+            mass_e_log = np.log10(item['mass_e'])
             
             mask = np.isfinite(t_myr_log) & np.isfinite(mass_e_log)
             
             if mg == 0.01:
-                # Cada vez más gruesa, pero mandamos al fondo (menor zorder) para que no tape a las delgadas
                 current_lw = 2.0 + k * 2.0
                 z_ord = 10 - k
             else:
                 current_lw = 2.5
                 z_ord = 2
             
-            ax.plot(t_myr_log[mask], mass_e_log[mask], color=color, alpha=0.8, lw=current_lw, zorder=z_ord)
+            ax.plot(t_myr_log[mask], mass_e_log[mask], color=color, alpha=0.8, lw=current_lw, zorder=z_ord, ls=ls)
             if item['t_cross_1au']: t_cross_avg.append(np.log10(item['t_cross_1au'] / 1e6))
             
         ax.set_xlim([-3, 1])
         
-        # Limite Y local
         min_m_local = np.nanmin([np.nanmin(np.log10(item['mass_e'])) for item in runs_mg])
         max_m_local = np.nanmax([np.nanmax(np.log10(item['mass_e'])) for item in runs_mg])
         
@@ -290,45 +245,35 @@ def plot_lines_grouped_by_mgap(data_alpha, alpha_val):
         if t_cross_avg:
             t_med = np.median(t_cross_avg)
             label = "Snowline a 1au" if i == 0 else None
-            ax.axvline(t_med, color='black', ls='--', alpha=0.3, lw=2.0, label=label)
+            ax.axvline(t_med, color='black', ls='--', alpha=0.6, lw=2.0, label=label)
             
         row = i // cols
         col = i % cols
-        
         if col == 0:
-            ax.set_ylabel(r"$\log(M_{\mathrm{emb}}) \ [M_\oplus]$")
+            ax.set_ylabel(r"Log(M_embrion [$M_\oplus$])")
             
-        if row == 2: # Últimas 3 (índices 6, 7, 8 en un grid 3x3)
-            ax.set_xlabel(r"$\log(t) \ [\mathrm{Myr}]$")
+        last_in_col = max([idx for idx in range(n_mg) if idx % cols == col])
+        if i == last_in_col:
+            ax.set_xlabel("Log(t [Myr])")
             
         if i == 0:
             from matplotlib.lines import Line2D
             custom_lines = [Line2D([0], [0], color=cmap(norm(rg)), lw=2.5) for rg in all_rgaps]
             labels = [f"{rg} AU" for rg in all_rgaps]
             if t_cross_avg:
-                custom_lines.append(Line2D([0], [0], color='black', ls='--', alpha=0.3, lw=2.0))
+                custom_lines.append(Line2D([0], [0], color='black', ls='--', alpha=0.6, lw=2.0))
                 labels.append("Snowline a 1au")
-            if reached_iso_local:
-                custom_lines.append(Line2D([0], [0], color='gray', ls=':', alpha=0.8, lw=2.0))
-                labels.append("Isolation Mass")
-                
-            # Legend size increased (e.g., fontsize=14 o 16 para que se vean bien grandes)
-            ax.legend(custom_lines, labels, loc="upper left", fontsize=14)
-        else:
-            if reached_iso_local:
-                from matplotlib.lines import Line2D
-                custom_lines = [Line2D([0], [0], color='gray', ls=':', alpha=0.8, lw=2.0)]
-                ax.legend(custom_lines, ["Isolation Mass"], loc="upper left", fontsize=14)
+            ax.legend(custom_lines, labels, loc="upper left", fontsize=11)
             
     for j in range(n_mg, len(axes)):
         axes[j].set_visible(False)
         
     plt.tight_layout()
     plt.subplots_adjust(top=0.92)
-    plt.savefig(os.path.join(FIG_DIR, f"evo_mgap_a{alpha_val}_M0_{M0_EARTH}.png"), dpi=200, bbox_inches='tight')
+    plt.savefig(os.path.join(fig_dir, f"evo_mgap_a{alpha_val}_M0_{m0_earth}.png"), dpi=200, bbox_inches='tight')
     plt.close()
 
-def plot_heatmaps(data_alpha, alpha_val):
+def plot_heatmaps(data_alpha, alpha_val, fig_dir, v_frag, m0_earth):
     r_gaps = sorted(list(set([d['r_gap'] for d in data_alpha])))
     m_gaps = sorted(list(set([d['M_gap'] for d in data_alpha])))
     
@@ -364,8 +309,8 @@ def plot_heatmaps(data_alpha, alpha_val):
     
     ax.set_xlabel("Posición del Gap [AU]")
     ax.set_ylabel(r"Profundidad del Gap [$M_{\mathrm{Jup}}$]")
-    ax.set_title(rf"Masa Final del Embrión ($\alpha = {alpha_val}$)")
-    plt.savefig(os.path.join(FIG_DIR, f"heatmap_masa_a{alpha_val}_M0_{M0_EARTH}.png"), dpi=200, bbox_inches='tight')
+    ax.set_title(rf"Masa Final del Embrión ($\alpha = {alpha_val}$ | $v_{{frag}} = {v_frag}$ m/s | $M_0 = {m0_earth}\ M_\oplus$)")
+    plt.savefig(os.path.join(fig_dir, f"heatmap_masa_a{alpha_val}_M0_{m0_earth}.png"), dpi=200, bbox_inches='tight')
     plt.close()
     
     # 2. Heatmap Fracción H2O
@@ -390,28 +335,58 @@ def plot_heatmaps(data_alpha, alpha_val):
     
     ax.set_xlabel("Posición del Gap [AU]")
     ax.set_ylabel(r"Profundidad del Gap [$M_{\mathrm{Jup}}$]")
-    ax.set_title(rf"Fracción de Agua Final ($\alpha = {alpha_val}$)")
-    plt.savefig(os.path.join(FIG_DIR, f"heatmap_h2o_a{alpha_val}_M0_{M0_EARTH}.png"), dpi=200, bbox_inches='tight')
+    ax.set_title(rf"Fracción de Agua Final ($\alpha = {alpha_val}$ | $v_{{frag}} = {v_frag}$ m/s | $M_0 = {m0_earth}\ M_\oplus$)")
+    plt.savefig(os.path.join(fig_dir, f"heatmap_h2o_a{alpha_val}_M0_{m0_earth}.png"), dpi=200, bbox_inches='tight')
     plt.close()
 
-
-def main():
-    if os.path.exists(CACHE_FILE):
-        print(f"Cargando datos desde caché: {CACHE_FILE}")
-        print("Si deseas procesar de nuevo, borra el archivo de caché.")
-        with open(CACHE_FILE, 'rb') as f:
+def process_vfrag(v_frag, m0_earth):
+    # RUTAS ACORDES A LA NUEVA ESTRUCTURA
+    if v_frag in [1, 3]:
+        base_dir = f"data/runs/10Myr_v_frag_{v_frag}ms"
+        fig_dir = f"data/figures/10Myr_v_frag_{v_frag}ms_M0_{m0_earth}"
+        cache_file = f"data/runs/10Myr_v_frag_{v_frag}ms_pa3_cache_M0_{m0_earth}.pkl"
+    else:
+        base_dir = f"runs_geryon/v_frag_{v_frag}ms"
+        fig_dir = f"figures_geryon/v_frag_{v_frag}ms_M0_{m0_earth}"
+        cache_file = f"runs_geryon/v_frag_{v_frag}ms_pa3_cache_M0_{m0_earth}.pkl"
+    
+    os.makedirs(fig_dir, exist_ok=True)
+    
+    print(f"\n=======================================================")
+    print(f"PROCESANDO v_frag = {v_frag} m/s | M0 = {m0_earth} M_earth")
+    print(f"=======================================================")
+    
+    # Comprobar si existe cache
+    if os.path.exists(cache_file):
+        print(f"Cargando datos desde caché: {cache_file}")
+        with open(cache_file, 'rb') as f:
             data = pickle.load(f)
     else:
-        data = extract_data()
+        # Extraer si no hay cache. Nota: si la carpeta base_dir no existe aún (aún no has corrido las sims)
+        # simplemente arrojará vacío.
+        if not os.path.exists(base_dir):
+            print(f"Advertencia: no existe el directorio {base_dir}")
+            return
+            
+        data = extract_data(base_dir, cache_file, m0_earth)
         
-    print("\nGenerando gráficos para cada alpha...")
+    print(f"\nGenerando gráficos para v_frag = {v_frag} m/s...")
     for alpha_val, data_alpha in data.items():
-        print(f" -> Generando plots para alpha = {alpha_val} ({len(data_alpha)} corridas)")
-        plot_lines_grouped_by_rgap(data_alpha, alpha_val)
-        plot_lines_grouped_by_mgap(data_alpha, alpha_val)
-        plot_heatmaps(data_alpha, alpha_val)
+        if len(data_alpha) > 0:
+            print(f" -> Generando plots para alpha = {alpha_val} ({len(data_alpha)} corridas)")
+            plot_lines_grouped_by_rgap(data_alpha, alpha_val, fig_dir, v_frag, m0_earth)
+            plot_lines_grouped_by_mgap(data_alpha, alpha_val, fig_dir, v_frag, m0_earth)
+            plot_heatmaps(data_alpha, alpha_val, fig_dir, v_frag, m0_earth)
+        else:
+            print(f" -> No se encontraron datos válidos para alpha = {alpha_val}")
         
-    print(f"\n¡Todos los gráficos se han guardado en {FIG_DIR}!")
+    print(f"¡Gráficos de v_frag = {v_frag} guardados en {fig_dir}!")
 
+def main():
+    v_frags = [1, 3]  # Ahora procesará tanto 1 como 3 m/s
+    for m0 in M0_EARTH_VALUES:
+        for v_frag in v_frags:
+            process_vfrag(v_frag, m0)
+        
 if __name__ == "__main__":
     main()

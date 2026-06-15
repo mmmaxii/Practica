@@ -34,13 +34,11 @@ import dustpy.constants as c
 # ==============================================================================
 # CONFIGURACIÓN DEL USUARIO
 # ==============================================================================
-M0_EARTH = 0.01       # Masa inicial del embrión en masas terrestres
+M0_EARTH = float(sys.argv[1]) if len(sys.argv) > 1 else 0.0001       # Masa inicial del embrión en masas terrestres
 EMBRYO_AU = 1.0       # Posición del embrión en AU
 BASE_DIR = "data/runs/10Myr"
-FIG_DIR = f"data/figures/10Myr_M0_{M0_EARTH}"
 CACHE_FILE = f"data/runs/10Myr_pa3_cache_M0_{M0_EARTH}.pkl"
 
-os.makedirs(FIG_DIR, exist_ok=True)
 # ==============================================================================
 
 def parse_run_name(run_name):
@@ -113,7 +111,7 @@ def extract_data():
         
     return data
 
-def plot_lines_grouped_by_rgap(data_alpha, alpha_val):
+def plot_lines_grouped_by_rgap(data_alpha, alpha_val, fig_dir):
     groups = {}
     for item in data_alpha:
         rg = item['r_gap']
@@ -184,10 +182,10 @@ def plot_lines_grouped_by_rgap(data_alpha, alpha_val):
 
     plt.tight_layout()
     plt.subplots_adjust(top=0.92)
-    plt.savefig(os.path.join(FIG_DIR, f"evo_rgap_a{alpha_val}_M0_{M0_EARTH}.png"), dpi=200, bbox_inches='tight')
+    plt.savefig(os.path.join(fig_dir, f"evo_rgap_a{alpha_val}_M0_{M0_EARTH}.png"), dpi=200, bbox_inches='tight')
     plt.close()
 
-def plot_lines_grouped_by_mgap(data_alpha, alpha_val):
+def plot_lines_grouped_by_mgap(data_alpha, alpha_val, fig_dir):
     groups = {}
     for item in data_alpha:
         mg = item['M_gap']
@@ -275,10 +273,10 @@ def plot_lines_grouped_by_mgap(data_alpha, alpha_val):
         
     plt.tight_layout()
     plt.subplots_adjust(top=0.92)
-    plt.savefig(os.path.join(FIG_DIR, f"evo_mgap_a{alpha_val}_M0_{M0_EARTH}.png"), dpi=200, bbox_inches='tight')
+    plt.savefig(os.path.join(fig_dir, f"evo_mgap_a{alpha_val}_M0_{M0_EARTH}.png"), dpi=200, bbox_inches='tight')
     plt.close()
 
-def plot_heatmaps(data_alpha, alpha_val):
+def plot_heatmaps(data_alpha, alpha_val, fig_dir):
     r_gaps = sorted(list(set([d['r_gap'] for d in data_alpha])))
     m_gaps = sorted(list(set([d['M_gap'] for d in data_alpha])))
     
@@ -315,7 +313,7 @@ def plot_heatmaps(data_alpha, alpha_val):
     ax.set_xlabel("Posición del Gap [AU]")
     ax.set_ylabel(r"Profundidad del Gap [$M_{\mathrm{Jup}}$]")
     ax.set_title(rf"Masa Final del Embrión ($\alpha = {alpha_val}$)")
-    plt.savefig(os.path.join(FIG_DIR, f"heatmap_masa_a{alpha_val}_M0_{M0_EARTH}.png"), dpi=200, bbox_inches='tight')
+    plt.savefig(os.path.join(fig_dir, f"heatmap_masa_a{alpha_val}_M0_{M0_EARTH}.png"), dpi=200, bbox_inches='tight')
     plt.close()
     
     # 2. Heatmap Fracción H2O
@@ -341,7 +339,7 @@ def plot_heatmaps(data_alpha, alpha_val):
     ax.set_xlabel("Posición del Gap [AU]")
     ax.set_ylabel(r"Profundidad del Gap [$M_{\mathrm{Jup}}$]")
     ax.set_title(rf"Fracción de Agua Final ($\alpha = {alpha_val}$)")
-    plt.savefig(os.path.join(FIG_DIR, f"heatmap_h2o_a{alpha_val}_M0_{M0_EARTH}.png"), dpi=200, bbox_inches='tight')
+    plt.savefig(os.path.join(fig_dir, f"heatmap_h2o_a{alpha_val}_M0_{M0_EARTH}.png"), dpi=200, bbox_inches='tight')
     plt.close()
 
 
@@ -357,11 +355,13 @@ def main():
     print("\nGenerando gráficos para cada alpha...")
     for alpha_val, data_alpha in data.items():
         print(f" -> Generando plots para alpha = {alpha_val} ({len(data_alpha)} corridas)")
-        plot_lines_grouped_by_rgap(data_alpha, alpha_val)
-        plot_lines_grouped_by_mgap(data_alpha, alpha_val)
-        plot_heatmaps(data_alpha, alpha_val)
+        fig_dir = f"data/figures/M_{M0_EARTH}/alpha_{alpha_val}"
+        os.makedirs(fig_dir, exist_ok=True)
+        plot_lines_grouped_by_rgap(data_alpha, alpha_val, fig_dir)
+        plot_lines_grouped_by_mgap(data_alpha, alpha_val, fig_dir)
+        plot_heatmaps(data_alpha, alpha_val, fig_dir)
         
-    print(f"\n¡Todos los gráficos se han guardado en {FIG_DIR}!")
+    print(f"\n¡Todos los gráficos se han guardado en data/figures/M_{M0_EARTH}!")
 
 if __name__ == "__main__":
     main()

@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
 """
-analisis_pa3_vfrag.py
+analisis_pa3_nuevos_alphas.py
 ---------------------
-Extrae la evolución del embrión (usando PA3Py) para las simulaciones 
-con distintas velocidades de fragmentación y genera los mismos gráficos.
+Extrae la evolución del embrión para los alphas 0.0005, 0.003 y 0.005, y genera
+gráficos de gradiente de evolución temporal y mapas de calor. Las runs que no 
+alcanzaron las 99 snapshots se grafican con línea punteada.
 """
 
 import os
@@ -15,7 +16,6 @@ import matplotlib.pyplot as plt
 from matplotlib.colors import LogNorm, Normalize
 import matplotlib.ticker as ticker
 
-# Aumentar tamaño de las fuentes globalmente
 plt.rcParams.update({
     'font.size': 14,
     'axes.labelsize': 14,
@@ -26,17 +26,17 @@ plt.rcParams.update({
     'figure.titlesize': 18
 })
 
-# Asegurar que python encuentre PA3Py
 sys.path.append(os.path.abspath(os.path.dirname(__file__)))
 from PA3Py.PebbleAccretion3 import PebbleAccretionModule3
 import dustpy.constants as c
 
-# ==============================================================================
-# CONFIGURACIÓN DEL USUARIO
-# ==============================================================================
-M0_EARTH = 0.01       # Masa inicial del embrión en masas terrestres
-EMBRYO_AU = 1.0       # Posición del embrión en AU
-# ==============================================================================
+M0_EARTH = float(sys.argv[1]) if len(sys.argv) > 1 else 0.0001
+EMBRYO_AU = 1.0
+BASE_DIR = "data/runs/10Myr"
+CACHE_FILE = f"data/runs/10Myr_pa3_cache_nuevos_alphas_M0_{M0_EARTH}.pkl"
+
+TARGET_ALPHAS = [0.0005, 0.003, 0.005]
+
 
 def parse_run_name(run_name):
     parts = run_name.split('_')
@@ -45,25 +45,28 @@ def parse_run_name(run_name):
     a_val = float(parts[3][1:])
     return r_val, m_val, a_val
 
-def get_completed_runs(base_dir):
-    runs = glob.glob(os.path.join(base_dir, "run_*"))
-    completed = []
+def get_target_runs():
+    runs = glob.glob(os.path.join(BASE_DIR, "run_*"))
+    target_runs = []
     for rpath in runs:
-        if os.path.exists(os.path.join(rpath, "data0099.hdf5")):
-            completed.append(rpath)
-    completed.sort()
-    return completed
+        run_name = os.path.basename(rpath)
+        r_gap, M_gap, alpha = parse_run_name(run_name)
+        if alpha in TARGET_ALPHAS:
+            completed = os.path.exists(os.path.join(rpath, "data0099.hdf5"))
+            target_runs.append((rpath, completed))
+    target_runs.sort()
+    return target_runs
 
-def extract_data(base_dir, cache_file):
-    runs = get_completed_runs(base_dir)
+def extract_data():
+    runs_info = get_target_runs()
     data = {}
     
-    print(f"Iniciando extracción PA3 para {len(runs)} simulaciones completas en {base_dir}...")
-    for i, rpath in enumerate(runs):
+    print(f"Iniciando extracción PA3 para {len(runs_info)} simulaciones...")
+    for i, (rpath, completed) in enumerate(runs_info):
         run_name = os.path.basename(rpath)
         r_gap, M_gap, alpha = parse_run_name(run_name)
         
-        print(f"[{i+1}/{len(runs)}] Procesando {run_name} ...")
+        print(f"[{i+1}/{len(runs_info)}] Procesando {run_name} (Completado: {completed})...")
         
         try:
             pa3 = PebbleAccretionModule3.from_datadir(rpath, M_star=1.0)
@@ -100,15 +103,16 @@ def extract_data(base_dir, cache_file):
             'times_yr': times_yr,
             'mass_e': mass_e,
             'frac_h2o_final': frac_h2o_final,
-            't_cross_1au': t_cross_1au
+            't_cross_1au': t_cross_1au,
+            'completed': completed
         })
         
-    with open(cache_file, 'wb') as f:
+    with open(CACHE_FILE, 'wb') as f:
         pickle.dump(data, f)
         
     return data
 
-def plot_lines_grouped_by_rgap(data_alpha, alpha_val, fig_dir, v_frag):
+def plot_lines_grouped_by_rgap(data_alpha, alpha_val, fig_dir):
     groups = {}
     for item in data_alpha:
         rg = item['r_gap']
@@ -118,7 +122,7 @@ def plot_lines_grouped_by_rgap(data_alpha, alpha_val, fig_dir, v_frag):
     r_gaps = sorted(list(groups.keys()))
     
     fig, axes = plt.subplots(2, 2, figsize=(14, 11))
-    fig.suptitle(rf"$\alpha = {alpha_val}$ | $v_{{frag}} = {v_frag}$ m/s", fontsize=18)
+    fig.suptitle(rf"$\alpha = {alpha_val}$", fontsize=18)
     
     axes = axes.flatten()
     
@@ -135,13 +139,14 @@ def plot_lines_grouped_by_rgap(data_alpha, alpha_val, fig_dir, v_frag):
         
         for item in runs_rg:
             color = cmap(norm(item['M_gap']))
+            ls = '-' if item['completed'] else ':'
             
             t_myr_log = np.log10(item['times_yr'] / 1e6)
             mass_e_log = np.log10(item['mass_e'])
             
             mask = np.isfinite(t_myr_log) & np.isfinite(mass_e_log)
             
-            ax.plot(t_myr_log[mask], mass_e_log[mask], color=color, alpha=0.8, lw=2.5)
+            ax.plot(t_myr_log[mask], mass_e_log[mask], color=color, alpha=0.8, lw=2.5, ls=ls)
             if item['t_cross_1au']: t_cross_avg.append(np.log10(item['t_cross_1au'] / 1e6))
             
         ax.set_xlim([-3, 1])
@@ -169,6 +174,8 @@ def plot_lines_grouped_by_rgap(data_alpha, alpha_val, fig_dir, v_frag):
             from matplotlib.lines import Line2D
             custom_lines = [Line2D([0], [0], color=cmap(norm(mg)), lw=2.5) for mg in all_mgaps]
             labels = [f"{mg} $M_{{\mathrm{{Jup}}}}$" for mg in all_mgaps]
+            custom_lines.append(Line2D([0], [0], color='gray', lw=2.5, ls=':'))
+            labels.append("Incompleta (< 99 snaps)")
             if t_cross_avg:
                 custom_lines.append(Line2D([0], [0], color='black', ls='--', alpha=0.6, lw=2.0))
                 labels.append("Snowline a 1au")
@@ -179,7 +186,7 @@ def plot_lines_grouped_by_rgap(data_alpha, alpha_val, fig_dir, v_frag):
     plt.savefig(os.path.join(fig_dir, f"evo_rgap_a{alpha_val}_M0_{M0_EARTH}.png"), dpi=200, bbox_inches='tight')
     plt.close()
 
-def plot_lines_grouped_by_mgap(data_alpha, alpha_val, fig_dir, v_frag):
+def plot_lines_grouped_by_mgap(data_alpha, alpha_val, fig_dir):
     groups = {}
     for item in data_alpha:
         mg = item['M_gap']
@@ -193,7 +200,7 @@ def plot_lines_grouped_by_mgap(data_alpha, alpha_val, fig_dir, v_frag):
     rows = (n_mg + cols - 1) // cols
     
     fig, axes = plt.subplots(rows, cols, figsize=(16, 5 * rows))
-    fig.suptitle(rf"$\alpha = {alpha_val}$ | $v_{{frag}} = {v_frag}$ m/s", fontsize=18)
+    fig.suptitle(rf"$\alpha = {alpha_val}$", fontsize=18)
     
     if not isinstance(axes, np.ndarray): axes = np.array([axes])
     axes = axes.flatten()
@@ -210,6 +217,7 @@ def plot_lines_grouped_by_mgap(data_alpha, alpha_val, fig_dir, v_frag):
         
         for k, item in enumerate(runs_mg):
             color = cmap(norm(item['r_gap']))
+            ls = '-' if item['completed'] else ':'
             
             t_myr_log = np.log10(item['times_yr'] / 1e6)
             mass_e_log = np.log10(item['mass_e'])
@@ -223,7 +231,7 @@ def plot_lines_grouped_by_mgap(data_alpha, alpha_val, fig_dir, v_frag):
                 current_lw = 2.5
                 z_ord = 2
             
-            ax.plot(t_myr_log[mask], mass_e_log[mask], color=color, alpha=0.8, lw=current_lw, zorder=z_ord)
+            ax.plot(t_myr_log[mask], mass_e_log[mask], color=color, alpha=0.8, lw=current_lw, zorder=z_ord, ls=ls)
             if item['t_cross_1au']: t_cross_avg.append(np.log10(item['t_cross_1au'] / 1e6))
             
         ax.set_xlim([-3, 1])
@@ -255,6 +263,8 @@ def plot_lines_grouped_by_mgap(data_alpha, alpha_val, fig_dir, v_frag):
             from matplotlib.lines import Line2D
             custom_lines = [Line2D([0], [0], color=cmap(norm(rg)), lw=2.5) for rg in all_rgaps]
             labels = [f"{rg} AU" for rg in all_rgaps]
+            custom_lines.append(Line2D([0], [0], color='gray', lw=2.5, ls=':'))
+            labels.append("Incompleta (< 99 snaps)")
             if t_cross_avg:
                 custom_lines.append(Line2D([0], [0], color='black', ls='--', alpha=0.6, lw=2.0))
                 labels.append("Snowline a 1au")
@@ -268,7 +278,7 @@ def plot_lines_grouped_by_mgap(data_alpha, alpha_val, fig_dir, v_frag):
     plt.savefig(os.path.join(fig_dir, f"evo_mgap_a{alpha_val}_M0_{M0_EARTH}.png"), dpi=200, bbox_inches='tight')
     plt.close()
 
-def plot_heatmaps(data_alpha, alpha_val, fig_dir, v_frag):
+def plot_heatmaps(data_alpha, alpha_val, fig_dir):
     r_gaps = sorted(list(set([d['r_gap'] for d in data_alpha])))
     m_gaps = sorted(list(set([d['M_gap'] for d in data_alpha])))
     
@@ -284,7 +294,6 @@ def plot_heatmaps(data_alpha, alpha_val, fig_dir, v_frag):
     x_idx = np.arange(len(r_gaps))
     y_idx = np.arange(len(m_gaps))
     
-    # 1. Heatmap Masa Final
     fig, ax = plt.subplots(figsize=(9, 7))
     vmax_mass = np.nanmax(Z_mass) if not np.all(np.isnan(Z_mass)) else 1.0
     mesh1 = ax.imshow(Z_mass, origin='lower', aspect='auto', cmap='viridis', 
@@ -304,11 +313,10 @@ def plot_heatmaps(data_alpha, alpha_val, fig_dir, v_frag):
     
     ax.set_xlabel("Posición del Gap [AU]")
     ax.set_ylabel(r"Profundidad del Gap [$M_{\mathrm{Jup}}$]")
-    ax.set_title(rf"Masa Final del Embrión ($\alpha = {alpha_val}$ | $v_{{frag}} = {v_frag}$ m/s)")
+    ax.set_title(rf"Masa Final del Embrión ($\alpha = {alpha_val}$)")
     plt.savefig(os.path.join(fig_dir, f"heatmap_masa_a{alpha_val}_M0_{M0_EARTH}.png"), dpi=200, bbox_inches='tight')
     plt.close()
     
-    # 2. Heatmap Fracción H2O
     fig, ax = plt.subplots(figsize=(9, 7))
     vmax_h2o = np.nanmax(Z_h2o) if not np.all(np.isnan(Z_h2o)) else 100.0
     if vmax_h2o == 0: vmax_h2o = 1.0 
@@ -330,52 +338,29 @@ def plot_heatmaps(data_alpha, alpha_val, fig_dir, v_frag):
     
     ax.set_xlabel("Posición del Gap [AU]")
     ax.set_ylabel(r"Profundidad del Gap [$M_{\mathrm{Jup}}$]")
-    ax.set_title(rf"Fracción de Agua Final ($\alpha = {alpha_val}$ | $v_{{frag}} = {v_frag}$ m/s)")
+    ax.set_title(rf"Fracción de Agua Final ($\alpha = {alpha_val}$)")
     plt.savefig(os.path.join(fig_dir, f"heatmap_h2o_a{alpha_val}_M0_{M0_EARTH}.png"), dpi=200, bbox_inches='tight')
     plt.close()
 
-def process_vfrag(v_frag):
-    # RUTAS ACORDES A LA ESTRUCTURA v_frag_1ms / v_frag_3ms
-    base_dir = f"runs_geryon/v_frag_{v_frag}ms"
-    fig_dir = f"figures_geryon/v_frag_{v_frag}ms_M0_{M0_EARTH}"
-    cache_file = f"runs_geryon/v_frag_{v_frag}ms_pa3_cache_M0_{M0_EARTH}.pkl"
-    
-    os.makedirs(fig_dir, exist_ok=True)
-    
-    print(f"\n=======================================================")
-    print(f"PROCESANDO v_frag = {v_frag} m/s")
-    print(f"=======================================================")
-    
-    # Comprobar si existe cache
-    if os.path.exists(cache_file):
-        print(f"Cargando datos desde caché: {cache_file}")
-        with open(cache_file, 'rb') as f:
+def main():
+    if os.path.exists(CACHE_FILE):
+        print(f"Cargando datos desde caché: {CACHE_FILE}")
+        print("Si deseas procesar de nuevo, borra el archivo de caché.")
+        with open(CACHE_FILE, 'rb') as f:
             data = pickle.load(f)
     else:
-        # Extraer si no hay cache. Nota: si la carpeta base_dir no existe aún (aún no has corrido las sims)
-        # simplemente arrojará vacío.
-        if not os.path.exists(base_dir):
-            print(f"Advertencia: no existe el directorio {base_dir}")
-            return
-            
-        data = extract_data(base_dir, cache_file)
+        data = extract_data()
         
-    print(f"\nGenerando gráficos para v_frag = {v_frag} m/s...")
+    print("\nGenerando gráficos para cada alpha...")
     for alpha_val, data_alpha in data.items():
-        if len(data_alpha) > 0:
-            print(f" -> Generando plots para alpha = {alpha_val} ({len(data_alpha)} corridas)")
-            plot_lines_grouped_by_rgap(data_alpha, alpha_val, fig_dir, v_frag)
-            plot_lines_grouped_by_mgap(data_alpha, alpha_val, fig_dir, v_frag)
-            plot_heatmaps(data_alpha, alpha_val, fig_dir, v_frag)
-        else:
-            print(f" -> No se encontraron datos válidos para alpha = {alpha_val}")
+        print(f" -> Generando plots para alpha = {alpha_val} ({len(data_alpha)} corridas)")
+        fig_dir = f"data/figures/M_{M0_EARTH}/alpha_{alpha_val}"
+        os.makedirs(fig_dir, exist_ok=True)
+        plot_lines_grouped_by_rgap(data_alpha, alpha_val, fig_dir)
+        plot_lines_grouped_by_mgap(data_alpha, alpha_val, fig_dir)
+        plot_heatmaps(data_alpha, alpha_val, fig_dir)
         
-    print(f"¡Gráficos de v_frag = {v_frag} guardados en {fig_dir}!")
+    print(f"\n¡Todos los gráficos se han guardado en data/figures/M_{M0_EARTH}!")
 
-def main():
-    v_frags = [1, 3]
-    for v_frag in v_frags:
-        process_vfrag(v_frag)
-        
 if __name__ == "__main__":
     main()

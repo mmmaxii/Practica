@@ -1,10 +1,9 @@
 # -*- coding: utf-8 -*-
 """
-analisis_pa3_nuevos_alphas.py
+analisis_pa3_10myr.py
 ---------------------
-Extrae la evolución del embrión para los alphas 0.0005, 0.003 y 0.005, y genera
-gráficos de gradiente de evolución temporal y mapas de calor. Las runs que no 
-alcanzaron las 99 snapshots se grafican con línea punteada.
+Extrae la evolución del embrión (usando PA3Py) para las simulaciones de 10Myr
+completadas, y genera gráficos de gradiente de evolución temporal y mapas de calor.
 """
 
 import os
@@ -16,6 +15,7 @@ import matplotlib.pyplot as plt
 from matplotlib.colors import LogNorm, Normalize
 import matplotlib.ticker as ticker
 
+# Aumentar tamaño de las fuentes globalmente
 plt.rcParams.update({
     'font.size': 14,
     'axes.labelsize': 14,
@@ -26,19 +26,22 @@ plt.rcParams.update({
     'figure.titlesize': 18
 })
 
+# Asegurar que python encuentre PA3Py
 sys.path.append(os.path.abspath(os.path.dirname(__file__)))
 from PA3Py.PebbleAccretion3 import PebbleAccretionModule3
 import dustpy.constants as c
 
-M0_EARTH = 0.01
-EMBRYO_AU = 1.0
-BASE_DIR = "data/runs/10Myr"
-FIG_DIR = f"data/figures/10Myr_nuevos_alphas_M0_{M0_EARTH}"
-CACHE_FILE = f"data/runs/10Myr_pa3_cache_nuevos_alphas_M0_{M0_EARTH}.pkl"
-
-TARGET_ALPHAS = [0.0005, 0.003, 0.005]
+# ==============================================================================
+# CONFIGURACIÓN DEL USUARIO
+# ==============================================================================
+M0_EARTH = 0.0001       # Masa inicial del embrión en masas terrestres
+EMBRYO_AU = 1.0       # Posición del embrión en AU
+BASE_DIR = "data/runs/10Myr_round0.1"
+FIG_DIR = f"data/figures/10Myr_round0.1_M0_{M0_EARTH}"
+CACHE_FILE = f"data/runs/10Myr_round0.1_pa3_cache_M0_{M0_EARTH}.pkl"
 
 os.makedirs(FIG_DIR, exist_ok=True)
+# ==============================================================================
 
 def parse_run_name(run_name):
     parts = run_name.split('_')
@@ -47,28 +50,25 @@ def parse_run_name(run_name):
     a_val = float(parts[3][1:])
     return r_val, m_val, a_val
 
-def get_target_runs():
+def get_completed_runs():
     runs = glob.glob(os.path.join(BASE_DIR, "run_*"))
-    target_runs = []
+    completed = []
     for rpath in runs:
-        run_name = os.path.basename(rpath)
-        r_gap, M_gap, alpha = parse_run_name(run_name)
-        if alpha in TARGET_ALPHAS:
-            completed = os.path.exists(os.path.join(rpath, "data0099.hdf5"))
-            target_runs.append((rpath, completed))
-    target_runs.sort()
-    return target_runs
+        if os.path.exists(os.path.join(rpath, "data0099.hdf5")):
+            completed.append(rpath)
+    completed.sort()
+    return completed
 
 def extract_data():
-    runs_info = get_target_runs()
+    runs = get_completed_runs()
     data = {}
     
-    print(f"Iniciando extracción PA3 para {len(runs_info)} simulaciones...")
-    for i, (rpath, completed) in enumerate(runs_info):
+    print(f"Iniciando extracción PA3 para {len(runs)} simulaciones completas...")
+    for i, rpath in enumerate(runs):
         run_name = os.path.basename(rpath)
         r_gap, M_gap, alpha = parse_run_name(run_name)
         
-        print(f"[{i+1}/{len(runs_info)}] Procesando {run_name} (Completado: {completed})...")
+        print(f"[{i+1}/{len(runs)}] Procesando {run_name} ...")
         
         try:
             pa3 = PebbleAccretionModule3.from_datadir(rpath, M_star=1.0)
@@ -105,8 +105,7 @@ def extract_data():
             'times_yr': times_yr,
             'mass_e': mass_e,
             'frac_h2o_final': frac_h2o_final,
-            't_cross_1au': t_cross_1au,
-            'completed': completed
+            't_cross_1au': t_cross_1au
         })
         
     with open(CACHE_FILE, 'wb') as f:
@@ -122,10 +121,15 @@ def plot_lines_grouped_by_rgap(data_alpha, alpha_val):
         groups[rg].append(item)
         
     r_gaps = sorted(list(groups.keys()))
+    n_rg = len(r_gaps)
     
-    fig, axes = plt.subplots(2, 2, figsize=(14, 11))
+    cols = 3
+    rows = (n_rg + cols - 1) // cols
+    
+    fig, axes = plt.subplots(rows, cols, figsize=(16, 5 * rows))
     fig.suptitle(rf"$\alpha = {alpha_val}$", fontsize=18)
     
+    if not isinstance(axes, np.ndarray): axes = np.array([axes])
     axes = axes.flatten()
     
     cmap = plt.get_cmap('viridis')
@@ -138,21 +142,31 @@ def plot_lines_grouped_by_rgap(data_alpha, alpha_val):
         
         runs_rg = sorted(groups[rg], key=lambda x: x['M_gap'])
         t_cross_avg = []
+        reached_iso_local = False
         
         for item in runs_rg:
             color = cmap(norm(item['M_gap']))
-            ls = '-' if item['completed'] else ':'
             
-            t_myr_log = np.log10(item['times_yr'] / 1e6)
-            mass_e_log = np.log10(item['mass_e'])
+            times = np.copy(item['times_yr'])
+            mass = np.copy(item['mass_e'])
+            if len(times) > 0 and times[-1] < 1e7:
+                reached_iso_local = True
+                times = np.append(times, 1e7)
+                mass = np.append(mass, mass[-1])
+                ax.axhline(np.log10(mass[-1]), color='gray', ls=':', alpha=0.8, zorder=1)
+                
+            t_myr_log = np.log10(times / 1e6)
+            mass_e_log = np.log10(mass)
             
+            # Limpiar valores infinitos si el tiempo inicial es 0
             mask = np.isfinite(t_myr_log) & np.isfinite(mass_e_log)
             
-            ax.plot(t_myr_log[mask], mass_e_log[mask], color=color, alpha=0.8, lw=2.5, ls=ls)
+            ax.plot(t_myr_log[mask], mass_e_log[mask], color=color, alpha=0.8, lw=2.5)
             if item['t_cross_1au']: t_cross_avg.append(np.log10(item['t_cross_1au'] / 1e6))
             
-        ax.set_xlim([-3, 1])
+        ax.set_xlim([-3, 1]) # Log(t) desde -3 (10^3 años) hasta 1 (10^7 años)
         
+        # Limite Y local a cada figura específica
         min_m_local = np.nanmin([np.nanmin(np.log10(item['mass_e'])) for item in runs_rg])
         max_m_local = np.nanmax([np.nanmax(np.log10(item['mass_e'])) for item in runs_rg])
         
@@ -165,23 +179,39 @@ def plot_lines_grouped_by_rgap(data_alpha, alpha_val):
         if t_cross_avg:
             t_med = np.median(t_cross_avg)
             label = "Snowline a 1au" if i == 0 else None
-            ax.axvline(t_med, color='black', ls='--', alpha=0.6, lw=2.0, label=label)
+            ax.axvline(t_med, color='black', ls='--', alpha=0.3, lw=2.0, label=label)
             
-        if i % 2 == 0:
-            ax.set_ylabel(r"Log(M_embrion [$M_\oplus$])")
-        if i >= 2:
-            ax.set_xlabel("Log(t [Myr])")
+        row = i // cols
+        col = i % cols
+        
+        if col == 0:
+            ax.set_ylabel(r"$\log(M_{\mathrm{emb}}) \ [M_\oplus]$")
+            
+        # Para el grid de R_gap, usamos la última fila activa (o la última fila de la columna)
+        last_in_col = max([idx for idx in range(n_rg) if idx % cols == col])
+        if i == last_in_col:
+            ax.set_xlabel(r"$\log(t) \ [\mathrm{Myr}]$")
             
         if i == 0:
             from matplotlib.lines import Line2D
             custom_lines = [Line2D([0], [0], color=cmap(norm(mg)), lw=2.5) for mg in all_mgaps]
             labels = [f"{mg} $M_{{\mathrm{{Jup}}}}$" for mg in all_mgaps]
-            custom_lines.append(Line2D([0], [0], color='gray', lw=2.5, ls=':'))
-            labels.append("Incompleta (< 99 snaps)")
             if t_cross_avg:
-                custom_lines.append(Line2D([0], [0], color='black', ls='--', alpha=0.6, lw=2.0))
+                custom_lines.append(Line2D([0], [0], color='black', ls='--', alpha=0.3, lw=2.0))
                 labels.append("Snowline a 1au")
-            ax.legend(custom_lines, labels, loc="upper left", fontsize=11)
+            if reached_iso_local:
+                custom_lines.append(Line2D([0], [0], color='gray', ls=':', alpha=0.8, lw=2.0))
+                labels.append("Isolation Mass")
+                
+            ax.legend(custom_lines, labels, loc="upper left", fontsize=14)
+        else:
+            if reached_iso_local:
+                from matplotlib.lines import Line2D
+                custom_lines = [Line2D([0], [0], color='gray', ls=':', alpha=0.8, lw=2.0)]
+                ax.legend(custom_lines, ["Isolation Mass"], loc="upper left", fontsize=14)
+
+    for j in range(n_rg, len(axes)):
+        axes[j].set_visible(False)
 
     plt.tight_layout()
     plt.subplots_adjust(top=0.92)
@@ -216,28 +246,38 @@ def plot_lines_grouped_by_mgap(data_alpha, alpha_val):
         ax.set_title(f"Profundidad: {mg} $M_{{\mathrm{{Jup}}}}$")
         runs_mg = sorted(groups[mg], key=lambda x: x['r_gap'])
         t_cross_avg = []
+        reached_iso_local = False
         
         for k, item in enumerate(runs_mg):
             color = cmap(norm(item['r_gap']))
-            ls = '-' if item['completed'] else ':'
             
-            t_myr_log = np.log10(item['times_yr'] / 1e6)
-            mass_e_log = np.log10(item['mass_e'])
+            times = np.copy(item['times_yr'])
+            mass = np.copy(item['mass_e'])
+            if len(times) > 0 and times[-1] < 1e7:
+                reached_iso_local = True
+                times = np.append(times, 1e7)
+                mass = np.append(mass, mass[-1])
+                ax.axhline(np.log10(mass[-1]), color='gray', ls=':', alpha=0.8, zorder=1)
+            
+            t_myr_log = np.log10(times / 1e6)
+            mass_e_log = np.log10(mass)
             
             mask = np.isfinite(t_myr_log) & np.isfinite(mass_e_log)
             
             if mg == 0.01:
+                # Cada vez más gruesa, pero mandamos al fondo (menor zorder) para que no tape a las delgadas
                 current_lw = 2.0 + k * 2.0
                 z_ord = 10 - k
             else:
                 current_lw = 2.5
                 z_ord = 2
             
-            ax.plot(t_myr_log[mask], mass_e_log[mask], color=color, alpha=0.8, lw=current_lw, zorder=z_ord, ls=ls)
+            ax.plot(t_myr_log[mask], mass_e_log[mask], color=color, alpha=0.8, lw=current_lw, zorder=z_ord)
             if item['t_cross_1au']: t_cross_avg.append(np.log10(item['t_cross_1au'] / 1e6))
             
         ax.set_xlim([-3, 1])
         
+        # Limite Y local
         min_m_local = np.nanmin([np.nanmin(np.log10(item['mass_e'])) for item in runs_mg])
         max_m_local = np.nanmax([np.nanmax(np.log10(item['mass_e'])) for item in runs_mg])
         
@@ -250,27 +290,35 @@ def plot_lines_grouped_by_mgap(data_alpha, alpha_val):
         if t_cross_avg:
             t_med = np.median(t_cross_avg)
             label = "Snowline a 1au" if i == 0 else None
-            ax.axvline(t_med, color='black', ls='--', alpha=0.6, lw=2.0, label=label)
+            ax.axvline(t_med, color='black', ls='--', alpha=0.3, lw=2.0, label=label)
             
         row = i // cols
         col = i % cols
+        
         if col == 0:
-            ax.set_ylabel(r"Log(M_embrion [$M_\oplus$])")
+            ax.set_ylabel(r"$\log(M_{\mathrm{emb}}) \ [M_\oplus]$")
             
-        last_in_col = max([idx for idx in range(n_mg) if idx % cols == col])
-        if i == last_in_col:
-            ax.set_xlabel("Log(t [Myr])")
+        if row == 2: # Últimas 3 (índices 6, 7, 8 en un grid 3x3)
+            ax.set_xlabel(r"$\log(t) \ [\mathrm{Myr}]$")
             
         if i == 0:
             from matplotlib.lines import Line2D
             custom_lines = [Line2D([0], [0], color=cmap(norm(rg)), lw=2.5) for rg in all_rgaps]
             labels = [f"{rg} AU" for rg in all_rgaps]
-            custom_lines.append(Line2D([0], [0], color='gray', lw=2.5, ls=':'))
-            labels.append("Incompleta (< 99 snaps)")
             if t_cross_avg:
-                custom_lines.append(Line2D([0], [0], color='black', ls='--', alpha=0.6, lw=2.0))
+                custom_lines.append(Line2D([0], [0], color='black', ls='--', alpha=0.3, lw=2.0))
                 labels.append("Snowline a 1au")
-            ax.legend(custom_lines, labels, loc="upper left", fontsize=11)
+            if reached_iso_local:
+                custom_lines.append(Line2D([0], [0], color='gray', ls=':', alpha=0.8, lw=2.0))
+                labels.append("Isolation Mass")
+                
+            # Legend size increased (e.g., fontsize=14 o 16 para que se vean bien grandes)
+            ax.legend(custom_lines, labels, loc="upper left", fontsize=14)
+        else:
+            if reached_iso_local:
+                from matplotlib.lines import Line2D
+                custom_lines = [Line2D([0], [0], color='gray', ls=':', alpha=0.8, lw=2.0)]
+                ax.legend(custom_lines, ["Isolation Mass"], loc="upper left", fontsize=14)
             
     for j in range(n_mg, len(axes)):
         axes[j].set_visible(False)
@@ -296,6 +344,7 @@ def plot_heatmaps(data_alpha, alpha_val):
     x_idx = np.arange(len(r_gaps))
     y_idx = np.arange(len(m_gaps))
     
+    # 1. Heatmap Masa Final
     fig, ax = plt.subplots(figsize=(9, 7))
     vmax_mass = np.nanmax(Z_mass) if not np.all(np.isnan(Z_mass)) else 1.0
     mesh1 = ax.imshow(Z_mass, origin='lower', aspect='auto', cmap='viridis', 
@@ -319,6 +368,7 @@ def plot_heatmaps(data_alpha, alpha_val):
     plt.savefig(os.path.join(FIG_DIR, f"heatmap_masa_a{alpha_val}_M0_{M0_EARTH}.png"), dpi=200, bbox_inches='tight')
     plt.close()
     
+    # 2. Heatmap Fracción H2O
     fig, ax = plt.subplots(figsize=(9, 7))
     vmax_h2o = np.nanmax(Z_h2o) if not np.all(np.isnan(Z_h2o)) else 100.0
     if vmax_h2o == 0: vmax_h2o = 1.0 
@@ -343,6 +393,7 @@ def plot_heatmaps(data_alpha, alpha_val):
     ax.set_title(rf"Fracción de Agua Final ($\alpha = {alpha_val}$)")
     plt.savefig(os.path.join(FIG_DIR, f"heatmap_h2o_a{alpha_val}_M0_{M0_EARTH}.png"), dpi=200, bbox_inches='tight')
     plt.close()
+
 
 def main():
     if os.path.exists(CACHE_FILE):

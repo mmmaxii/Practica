@@ -96,8 +96,10 @@ class SnowlinePhysicsMixin:
 
         def make_rsnow_updater():
             def _updater(sim):
-                # Calcular r_snow en CGS basándonos en sim.t
-                return float(r_snow_time_cgs(float(sim.t)))
+                # Extraer r_min dinámicamente de la grilla actual de TripodPy
+                r_min_au = float(sim.grid.r.min() / c.au)
+                # Calcular r_snow en CGS basándonos en sim.t, capándolo al r_min
+                return float(r_snow_time_cgs(float(sim.t), r_min_au=r_min_au))
             return _updater
 
         self.sim.dust.addfield(

@@ -30,10 +30,10 @@ sys.path.append(os.path.abspath(os.path.dirname(__file__)))
 from PA3Py.PebbleAccretion3 import PebbleAccretionModule3
 import dustpy.constants as c
 
-M0_EARTH = 0.01
+M0_EARTH = float(sys.argv[1]) if len(sys.argv) > 1 else 0.0001
 EMBRYO_AU = 1.0
 BASE_DIR = "data/runs/10Myr Sinusoidal"
-FIG_DIR = f"data/figures/10Myr_Sinusoidal_M0_{M0_EARTH}"
+FIG_DIR = f"data/figures/M_{M0_EARTH}/sinusoidal"
 CACHE_FILE = f"data/runs/10Myr_Sinusoidal_cache_M0_{M0_EARTH}.pkl"
 
 os.makedirs(FIG_DIR, exist_ok=True)
