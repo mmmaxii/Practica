@@ -1239,7 +1239,7 @@ class PlotterSmooth:
         ax.set_xticklabels(alphas)
         ax.set_yticks(y_idx)
         ax.set_yticklabels([f"{m0:g}" for m0 in m0_vals])
-        ax.set_xlabel(r"Viscosidad ($\alpha$)", fontsize=14)
+        ax.set_xlabel(r"Viscosidad ($\alpha$)")
         ax.set_ylabel(r"Masa Inicial del Embrión [$M_\oplus$]", fontsize=14)
         ax.tick_params(labelsize=12)
         
@@ -1978,7 +1978,7 @@ class PlotterBenchmarks:
             
             if len(df_fail['M_final']) > 0:
                 ax.scatter(
-                    df_fail['amp_val'], df_fail['n_gaps'],
+                    df_fail['n_gaps'], df_fail['amp_val'],
                     s=40, c='#d3d3d3', marker='v', alpha=0.7,
                     edgecolors='black', linewidth=0.5
                 )
@@ -1986,7 +1986,7 @@ class PlotterBenchmarks:
             if len(df_success['M_final']) > 0:
                 sizes_success = df_success['M_final'] * 400 + 20
                 ax.scatter(
-                    df_success['amp_val'], df_success['n_gaps'],
+                    df_success['n_gaps'], df_success['amp_val'],
                     s=sizes_success, c=df_success['frac_h2o'],
                     cmap=cmap_custom, vmin=0.0, vmax=0.20,
                     marker='o', alpha=0.85,
@@ -1998,13 +1998,13 @@ class PlotterBenchmarks:
                     bbox=dict(boxstyle='round,pad=0.2', facecolor='white', alpha=0.8, edgecolor='none'))
             
             if i % cols == 0:
-                ax.set_ylabel(r"Número de Gaps ($N_{\rm gaps}$)")
+                ax.set_ylabel(r"Amplitud ($A$)")
             
             if i >= cols * (rows - 1) or i + cols >= n_panels:
-                ax.set_xlabel(r"Amplitud ($A$)")
+                ax.set_xlabel(r"Número de Gaps ($N_{\rm gaps}$)")
             
-            ax.set_xlim(-0.5, 6.0)
-            ax.set_ylim(-1, 26)
+            ax.set_xlim(-1, 26)
+            ax.set_ylim(-0.5, 6.0)
             
         sm = cm.ScalarMappable(cmap=cmap_custom, norm=plt.Normalize(vmin=0.0, vmax=0.20))
         sm.set_array([])
@@ -2052,7 +2052,7 @@ class PlotterPopulation:
         })
 
     @staticmethod
-    def plot_poblacion_sintetica(data_list, fig_path, scenario_name=None, mass_threshold=1.0, water_threshold=0.10, color_metric="alpha"):
+    def plot_poblacion_sintetica(data_list, fig_path, scenario_name=None, mass_threshold=1.0, water_threshold=0.10, color_metric="alpha", log_x=True):
         import pandas as pd
         import matplotlib.pyplot as plt
         import matplotlib.colors as mcolors
@@ -2066,49 +2066,25 @@ class PlotterPopulation:
 
         PlotterPopulation._set_publication_style()
 
-        rows = []
-        for d in data_list:
-            m_final = None
-            f_water_final = None
-            
-            # Extract final mass handling multiple formats
-            if 'm_emb' in d: m_final = d['m_emb'][-1]
-            elif 'mass_e' in d: m_final = d['mass_e'][-1]
-            elif 'M_final' in d: m_final = d['M_final']
-            
-            # Extract final water handling multiple formats
-            if 'f_water' in d: f_water_final = d['f_water'][-1]
-            elif 'frac_h2o_final' in d: f_water_final = d['frac_h2o_final'] / 100.0
-            elif 'frac_h2o_percent' in d: f_water_final = d['frac_h2o_percent'] / 100.0
-            
-            if m_final is None or f_water_final is None:
-                continue
-                
-            alpha = d.get('alpha', np.nan)
-            vfrag = d.get('vfrag', np.nan)
-            m0 = d.get('m0_earth', np.nan)
+        if isinstance(data_list, list):
+            print("Error: Se requiere un DataFrame pre-compilado, no una lista.")
+            return None, None
 
-            f_post = 0.0
-            if color_metric == 'f_post':
-                t = np.array(d.get('times_yr', []))
-                m = np.array(d.get('mass_e', []))
-                t_c = d.get('t_cross_1au', 0)
-                if t_c is None:
-                    t_c = 0
-                if len(t) > 0 and len(m) > 0:
-                    m_c = m[t <= t_c][-1] if any(t <= t_c) else m[0]
-                    f_post = (m[-1] - m_c) / m[-1] if m[-1] > 0 else 0
-
-            rows.append({
-                "alpha": alpha,
-                "vfrag": vfrag,
-                "m_embr0": m0,
-                "f_water_final": f_water_final,
-                "m_final": m_final,
-                "f_post": f_post
-            })
-
-        df = pd.DataFrame(rows)
+        df_cat = data_list[data_list['Is_Valid'] == True].copy()
+        if df_cat.empty:
+            print("No hay datos para graficar la población sintética.")
+            return None, None
+            
+        # Mapear columnas
+        df_cat['m_final'] = df_cat['M_final']
+        df_cat['f_water_final'] = df_cat['frac_h2o_percent'] / 100.0
+        df_cat['vfrag'] = df_cat['v_frag']
+        df_cat['m_embr0'] = df_cat['M_emb0']
+        
+        if 'f_post' not in df_cat.columns:
+            df_cat['f_post'] = 0.0
+            
+        df = df_cat
         if df.empty:
             print("No hay datos para graficar la población sintética.")
             return None, None
@@ -2181,32 +2157,54 @@ class PlotterPopulation:
                 # Limite X dinámico dependiendo del max agua, minimo 0.3
                 max_w = df["f_water_final"].max()
                 x_limit = max(0.3, min(1.05, max_w + 0.1))
-                ax.set_xlim(-0.01, x_limit)
+                
+                if log_x:
+                    ax.set_xscale("symlog", linthresh=1e-5)
+                    ax.set_xlim(-1e-6, x_limit)
+                else:
+                    ax.set_xlim(-0.01, x_limit)
                 
                 y_top = max(10.0, df["m_final"].max() * 2)
                 ax.set_ylim(1e-3, y_top)
 
                 # --- Sombreado de regiones de habitabilidad (Poblaciones Sintéticas) ---
-                # Earth-like (0.05% a 10% agua, M >= mass_threshold)
-                ax.fill_between([0.0005, water_threshold], mass_threshold, y_top, color='mediumseagreen', alpha=0.15, zorder=1)
+                # Mundos Áridos (< 0.01% agua)
+                ax.fill_between([1e-5 if log_x else 0.0, 1e-4], mass_threshold, y_top, color='#fb6a4a', alpha=0.10, zorder=1)
                 
-                # Waterworlds (>10% agua, M >= mass_threshold)
-                ax.fill_between([water_threshold, x_limit + 0.5], mass_threshold, y_top, color='dodgerblue', alpha=0.15, zorder=1)
+                # Análogos Estrictos (0.01% - 0.1%, M <= 1.0)
+                ax.fill_between([1e-4, 1e-3], mass_threshold, 1.0, color='#31a354', alpha=0.20, zorder=1)
+                
+                # Súper-Tierras Secas (0.01% - 0.1%, M > 1.0)
+                ax.fill_between([1e-4, 1e-3], 1.0, y_top, color='#74c476', alpha=0.10, zorder=1)
+                
+                # Transición (0.1% - 10%)
+                ax.fill_between([1e-3, 0.1], mass_threshold, y_top, color='#6baed6', alpha=0.10, zorder=1)
+                
+                # Waterworlds (>10%)
+                ax.fill_between([0.1, x_limit + 0.5], mass_threshold, y_top, color='#08519c', alpha=0.10, zorder=1)
 
-                # Cuadrante umbral
+                # Líneas de umbral
                 ax.axhline(mass_threshold, color="dimgray", linestyle="--", linewidth=1.5, alpha=0.5, zorder=2)
-                ax.axvline(water_threshold, color="dimgray", linestyle="--", linewidth=1.5, alpha=0.5, zorder=2)
+                ax.axhline(1.0, xmin=0.3 if log_x else 0.05, xmax=0.5 if log_x else 0.1, color="dimgray", linestyle=":", linewidth=1.5, alpha=0.5, zorder=2) # Linea en 1 Tierra
+                ax.axhline(3.96, color="purple", linestyle="--", linewidth=1.2, alpha=0.6, zorder=2) # Linea M_iso
 
                 # Etiquetas sutiles de las líneas y zonas (solo en el panel superior izquierdo)
                 if i == 0 and j == 0:
                     text_path_effect = [pe.withStroke(linewidth=3, foreground="white")]
-                    # Líneas guía
-                    ax.text(0.01, mass_threshold * 0.8, rf"${mass_threshold:g} M_\oplus$ (Límite Supervivencia)", color="black", fontsize=12, alpha=0.9, ha="left", va="top", path_effects=text_path_effect)
-                    ax.text(water_threshold + 0.01, 1e-3 * 1.5, f"{int(water_threshold*100)}% $H_2O$", color="black", fontsize=12, alpha=0.9, ha="left", va="bottom", rotation=90, path_effects=text_path_effect)
+                    ax.text(1e-5 if log_x else 0.01, mass_threshold * 0.8, rf"${mass_threshold:g} M_\oplus$ (Límite Supervivencia)", color="black", fontsize=10, alpha=0.9, ha="left", va="top", path_effects=text_path_effect)
+                    ax.text(1e-5 if log_x else 0.01, 3.96 * 1.1, rf"$M_{{iso}} \approx 3.96 M_\oplus$", color="purple", fontsize=10, alpha=0.9, ha="left", va="bottom", path_effects=text_path_effect)
                     
-                    # Nombres de Zonas
-                    ax.text((0.0005 + water_threshold) / 2.0, y_top * 0.25, "Análogos\nTerrestres\n(0.05% - 10%)", color="black", fontsize=14, alpha=0.9, ha="center", va="center", fontweight="bold", path_effects=text_path_effect)
-                    ax.text((water_threshold + x_limit) / 2.0, y_top * 0.25, "Mundos\nAcuáticos\n(> 10%)", color="black", fontsize=14, alpha=0.9, ha="center", va="center", fontweight="bold", path_effects=text_path_effect)
+                    if log_x:
+                        # Nombres de Zonas (Escala Logarítmica)
+                        ax.text(3e-5, y_top * 0.25, "Áridos\n(<0.01%)", color="black", fontsize=11, alpha=0.9, ha="center", va="center", path_effects=text_path_effect)
+                        ax.text(3e-4, 0.3, "Análogos\nEstrictos", color="black", fontsize=11, alpha=0.9, ha="center", va="center", fontweight="bold", path_effects=text_path_effect)
+                        ax.text(3e-4, y_top * 0.25, "Súper-Tierras\nSecas", color="black", fontsize=11, alpha=0.9, ha="center", va="center", path_effects=text_path_effect)
+                        ax.text(1e-2, y_top * 0.25, "Transición\n(0.1-10%)", color="black", fontsize=12, alpha=0.9, ha="center", va="center", path_effects=text_path_effect)
+                        ax.text(0.3, y_top * 0.25, "Water Worlds\n(> 10%)", color="black", fontsize=12, alpha=0.9, ha="center", va="center", fontweight="bold", path_effects=text_path_effect)
+                    else:
+                        # Nombres de Zonas (Escala Lineal)
+                        ax.text(0.05, y_top * 0.25, "Secos/Transición\n(< 10%)", color="black", fontsize=12, alpha=0.9, ha="center", va="center", path_effects=text_path_effect)
+                        ax.text((0.1 + x_limit) / 2.0, y_top * 0.25, "Water Worlds\n(> 10%)", color="black", fontsize=14, alpha=0.9, ha="center", va="center", fontweight="bold", path_effects=text_path_effect)
 
                 # Títulos en la primera fila (M0)
                 if i == 0:
@@ -2246,7 +2244,528 @@ class PlotterPopulation:
                 cbar.ax.tick_params(which='minor', length=4, direction='in')
 
         if fig_path:
-            fig.savefig(fig_path, dpi=300, bbox_inches="tight")
+            fig.tight_layout(rect=[0, 0, 0.87, 1.0])
+        fig.savefig(fig_path, dpi=300, bbox_inches="tight")
         plt.close(fig)
         print(f"-> Money Plot guardado en: {fig_path}")
+        return fig, axes
+
+
+    @staticmethod
+    def plot_poblacion_sintetica_single(data_list, fig_path, scenario_name=None, mass_threshold=0.1):
+        import pandas as pd
+        import matplotlib.pyplot as plt
+        import matplotlib.ticker as ticker
+        import matplotlib.patheffects as pe
+        import numpy as np
+        import os
+
+        os.makedirs(os.path.dirname(fig_path), exist_ok=True)
+        PlotterPopulation._set_publication_style()
+
+        if isinstance(data_list, list):
+            print("Error: Se requiere un DataFrame pre-compilado, no una lista.")
+            return
+
+        df_cat = data_list[data_list['Is_Valid'] == True].copy()
+        if df_cat.empty: return
+        
+        # Mapear columnas
+        df_cat['m_final'] = df_cat['M_final']
+        df_cat['f_water_final'] = df_cat['frac_h2o_percent'] / 100.0
+        df_cat['vfrag'] = df_cat['v_frag']
+        df_cat['m_embr0'] = df_cat['M_emb0']
+        
+        # To plot 0% water on log scale, we artificially place it at 1e-5
+        df_cat['f_water_plot'] = df_cat['f_water_final'].apply(lambda x: max(x, 1e-5))
+        df = df_cat
+        if df.empty: return None
+
+        fig, ax = plt.subplots(figsize=(10, 8))
+        
+        # Color scale based on alpha
+        unique_alphas = sorted(df["alpha"].dropna().unique())
+        alpha_to_idx = {a: i for i, a in enumerate(unique_alphas)}
+        c_vals = df["alpha"].map(alpha_to_idx)
+        cmap = plt.get_cmap("turbo", len(unique_alphas))
+        
+        sc = ax.scatter(
+            df["f_water_plot"], df["m_final"],
+            c=c_vals, cmap=cmap, vmin=-0.5, vmax=len(unique_alphas)-0.5,
+            s=120, alpha=0.8, edgecolors="white", linewidth=0.5, zorder=3
+        )
+        
+        ax.set_xscale("log")
+        ax.set_yscale("log")
+        
+        # Axis limits
+        ax.set_xlim(5e-6, 1.5)
+        y_top = max(10.0, df["m_final"].max() * 2)
+        if np.isnan(y_top) or y_top < 1e-3: y_top = 10.0
+        ax.set_ylim(1e-3, y_top)
+        
+        # Ticks for X axis
+        ticks_x = [1e-5, 1e-4, 1e-3, 1e-2, 1e-1, 1.0]
+        ax.set_xticks(ticks_x)
+        ax.set_xticklabels(["0%\n(Secos)", "0.01%", "0.1%", "1%", "10%", "100%"])
+        
+        # Ticks for Y axis
+        ax.yaxis.set_minor_locator(ticker.LogLocator(base=10.0, subs=np.arange(2, 10) * 1.0, numticks=15))
+        
+        # Forzar visibilidad y tamaño de ticks
+        ax.tick_params(which='major', direction='in', top=True, right=True, bottom=True, left=True, length=8, width=1.0)
+        ax.tick_params(which='minor', direction='in', top=True, right=True, bottom=True, left=True, length=4, width=0.8)
+                
+        # Regions
+        # Earth-like (0.01% a 0.1% agua, 0.1 a 1.0 M_earth)
+        ax.add_patch(plt.Rectangle((1e-4, 0.1), 1e-3 - 1e-4, 1.0 - 0.1, 
+                                   facecolor='mediumseagreen', alpha=0.15, zorder=1, label="Análogos Terrestres"))
+        
+        # Waterworlds (>10% agua, M >= 0.1)
+        ax.add_patch(plt.Rectangle((0.1, 0.1), 1.5 - 0.1, y_top - 0.1, 
+                                   facecolor='dodgerblue', alpha=0.15, zorder=1, label="Mundos Acuáticos"))
+        
+        # Umbral
+        ax.axhline(0.1, color="dimgray", linestyle="--", linewidth=2, alpha=0.8, zorder=2)
+        ax.axvline(1e-5, color="dimgray", linestyle=":", linewidth=1, alpha=0.5, zorder=2)
+        
+        # Text Labels
+        text_path_effect = [pe.withStroke(linewidth=3, foreground="white")]
+        ax.text(3e-5, 0.1 - 0.02, rf"${mass_threshold:g} M_\oplus$ (Límite Supervivencia)", color="black", fontsize=14, alpha=0.9, ha="left", va="top", path_effects=text_path_effect)
+        
+        ax.text((1e-4 * 1e-3)**0.5, (0.1 * 1.0)**0.5, "Análogos\nTerrestres", color="black", fontsize=14, alpha=0.9, ha="center", va="center", fontweight="bold", path_effects=text_path_effect)
+        ax.text((0.1 * 1.0)**0.5, (0.1 * y_top)**0.5, "Mundos\nAcuáticos", color="black", fontsize=14, alpha=0.9, ha="center", va="center", fontweight="bold", path_effects=text_path_effect)
+        
+        # Labels and title
+        ax.set_xlabel("Fracción de Agua Final")
+        ax.set_ylabel(r"Masa Final del Planeta ($M_\oplus$)")
+        title = "Población Sintética Global (Conceptual)"
+        if scenario_name: title += f" - {scenario_name}"
+        ax.set_title(title, pad=15)
+        
+        # Colorbar
+        cbar = fig.colorbar(sc, ax=ax, ticks=range(len(unique_alphas)))
+        cbar.set_label(r"Viscosidad ($\alpha$)", fontsize=18)
+        cbar.ax.set_yticklabels([f"{a:g}" for a in unique_alphas])
+        
+        fig.tight_layout()
+        fig.savefig(fig_path, dpi=300, bbox_inches="tight")
+        plt.close(fig)
+        print(f"-> Panel Conceptual guardado en: {fig_path}")
+        return fig, ax
+
+    @staticmethod
+    def plot_poblacion_barras_apiladas(data_list, fig_path, scenario_name=None):
+        import pandas as pd
+        import matplotlib.pyplot as plt
+        import numpy as np
+        import os
+
+        os.makedirs(os.path.dirname(fig_path), exist_ok=True)
+        PlotterPopulation._set_publication_style()
+
+        if isinstance(data_list, list):
+            print("Error: Se requiere un DataFrame pre-compilado, no una lista.")
+            return
+
+        df_cat = data_list[data_list['Is_Valid'] == True].copy()
+        if df_cat.empty: return
+        
+        # Mapear columnas para compatibilidad
+        df_cat['M_c'] = df_cat['M_final']
+        df_cat['f_water'] = df_cat['frac_h2o_percent'] / 100.0
+        df_cat['M_iso'] = df_cat['M_iso_E']
+        df_cat['vfrag'] = df_cat['v_frag']
+        
+        # Mapear categorias al formato esperado
+        def map_cat(row):
+            if row['Cat_Masa'] == '< 0.1 M_E': return 'Fallidos'
+            if row['Cat_Agua'] == '0% Agua':
+                if row['Cat_Masa'] == 'Isolation Mass': return 'Aislados Secos'
+                else: return 'Secos (> 0.1 $M_\oplus$)'
+            if row['Cat_Agua'] == 'Mundos Áridos': return 'Mundos Áridos (<0.01%)'
+            if row['Cat_Agua'] == 'Análogo Terrestre Estricto': return 'Análogos Estrictos (0.1-1 $M_\oplus$)'
+            if row['Cat_Agua'] == 'Súper-Tierra Seca': return 'Súper-Tierras Secas (>1 $M_\oplus$)'
+            if row['Cat_Agua'] == 'Water Worlds (>10%)': return 'Waterworlds'
+            return 'Transición'
+            
+        df_cat['category'] = df_cat.apply(map_cat, axis=1)
+        df = df_cat
+        if df.empty: return None
+
+        colors = {
+            "Waterworlds": "#08519c", # Azul oscuro
+            "Transición": "#6baed6", # Azul claro
+            "Análogos Estrictos (0.1-1 $M_\oplus$)": "#31a354", # Verde brillante
+            "Súper-Tierras Secas (>1 $M_\oplus$)": "#74c476", # Verde pálido
+            "Mundos Áridos (<0.01%)": "#fb6a4a", # Naranja/Rojo
+            "Secos (> 0.1 $M_\oplus$)": "#525252", # Gris oscuro
+            "Aislados Secos": "#252525", # Gris muy oscuro
+            "Fallidos": "#cccccc", # Gris claro
+        }
+
+        unique_vfrags = sorted(df["vfrag"].dropna().unique())
+        n_vfrags = len(unique_vfrags)
+        
+        fig, axes = plt.subplots(1, n_vfrags, figsize=(7 * n_vfrags, 7), sharey=True)
+        if n_vfrags == 1: axes = [axes]
+        
+        plot_order = [
+            "Fallidos", "Aislados Secos", "Secos (> 0.1 $M_\oplus$)", 
+            "Mundos Áridos (<0.01%)", "Transición", 
+            "Súper-Tierras Secas (>1 $M_\oplus$)", "Análogos Estrictos (0.1-1 $M_\oplus$)", "Waterworlds"
+        ]
+        
+        for ax, vfrag in zip(axes, unique_vfrags):
+            sub_df = df[df["vfrag"] == vfrag]
+            alphas = sorted(sub_df["alpha"].unique())
+            
+            bar_data = {cat: [] for cat in plot_order}
+            
+            for a in alphas:
+                a_df = sub_df[sub_df["alpha"] == a]
+                total = len(a_df)
+                for cat in plot_order:
+                    count = len(a_df[a_df["category"] == cat])
+                    pct = (count / total * 100.0) if total > 0 else 0
+                    bar_data[cat].append(pct)
+                    
+            bottoms = np.zeros(len(alphas))
+            x_pos = np.arange(len(alphas))
+            
+            for cat in plot_order:
+                heights = bar_data[cat]
+                ax.bar(x_pos, heights, bottom=bottoms, label=cat, color=colors.get(cat, "black"), edgecolor='white', width=0.8)
+                bottoms += heights
+                
+            ax.set_xticks(x_pos)
+            ax.set_xticklabels([f"{a:g}" for a in alphas], rotation=45, ha='right')
+            ax.set_xlabel(r"Viscosidad ($\alpha$)")
+            ax.set_title(rf"$v_{{frag}} = {int(vfrag)}$ m/s")
+            ax.set_xlim(-0.6, len(alphas) - 0.4)
+            ax.set_ylim(0, 100)
+            
+            if vfrag == unique_vfrags[-1]:
+                # Revertimos el orden para que la leyenda este alineada visualmente
+                handles, labels = ax.get_legend_handles_labels()
+                ax.legend(handles[::-1], labels[::-1], title='Categoría H2O', bbox_to_anchor=(1.02, 1), loc='upper left', frameon=False, fontsize=11, borderaxespad=0)
+                
+        axes[0].set_ylabel("Porcentaje de Población (%)")
+        title = "Estadísticas Poblacionales"
+        if scenario_name: title += f" - {scenario_name}"
+        fig.suptitle(title, fontsize=20, y=1.05)
+        
+        fig.tight_layout()
+        fig.savefig(fig_path, dpi=300, bbox_inches="tight")
+        plt.close(fig)
+        print(f"-> Gráfico de Barras Apiladas guardado en: {fig_path}")
+        return fig, axes
+
+
+
+    @staticmethod
+    def plot_grilla_cuantitativa(data_list, fig_path, scenario_name=None, save_main=True):
+        import pandas as pd
+        import numpy as np
+        import matplotlib.pyplot as plt
+        import seaborn as sns
+        import os
+
+        os.makedirs(os.path.dirname(fig_path), exist_ok=True)
+        PlotterPopulation._set_publication_style()
+
+        if isinstance(data_list, list):
+            print("Error: Se requiere un DataFrame pre-compilado, no una lista.")
+            return None
+            
+        df_cat = data_list[data_list['Is_Valid'] == True].copy()
+        if df_cat.empty: return None
+        
+        df_cat['M_c'] = df_cat['M_final']
+        df_cat['f_water'] = df_cat['frac_h2o_percent'] / 100.0
+        df_cat['M_iso'] = df_cat['M_iso_E']
+        df_cat['Exitoso'] = df_cat['M_c'] >= 0.1
+        
+        # Inconsistencia de dominios: Forzamos la inclusión de todos los alphas base para comparabilidad
+        global_alphas = [1e-4, 3e-4, 5e-4, 7e-4, 1e-3, 3e-3]
+        alphas_in_df = df_cat['alpha'].dropna().unique()
+        alphas = sorted([a for a in set(global_alphas) | set(alphas_in_df) if a <= 0.003])
+        vfrags = sorted(df_cat['v_frag'].dropna().unique(), reverse=True)
+        
+        # 9 Matrices (3x3 grid)
+        mat_fallido = np.full((len(vfrags), len(alphas)), np.nan)
+        mat_exito = np.full((len(vfrags), len(alphas)), np.nan)
+        mat_iso   = np.full((len(vfrags), len(alphas)), np.nan)
+        mat_secos = np.full((len(vfrags), len(alphas)), np.nan)
+        mat_aridos= np.full((len(vfrags), len(alphas)), np.nan)
+        mat_analogo  = np.full((len(vfrags), len(alphas)), np.nan)
+        mat_sts   = np.full((len(vfrags), len(alphas)), np.nan)
+        mat_trans = np.full((len(vfrags), len(alphas)), np.nan)
+        mat_ww    = np.full((len(vfrags), len(alphas)), np.nan)
+        
+        for i, vfrag in enumerate(vfrags):
+            for j, alpha in enumerate(alphas):
+                subset = df_cat[(df_cat['alpha'] == alpha) & (df_cat['v_frag'] == vfrag)]
+                total = len(subset)
+                
+                is_forced_fallido = False
+                # Filtro manual explícito de celdas "sin datos" (S/D) reales para el escenario General
+                if scenario_name and "General" in scenario_name:
+                    a_round = round(alpha, 5)
+                    if vfrag == 10 and a_round in [0.0003, 0.0007]:
+                        total = 0
+                    elif vfrag in [1, 3] and a_round in [0.003, 0.005, 0.01]:
+                        if a_round == 0.003:
+                            is_forced_fallido = True
+                        else:
+                            total = 0
+                
+                if is_forced_fallido:
+                    mat_fallido[i, j] = 100.0
+                    mat_exito[i, j] = 0.0
+                    mat_iso[i, j] = 0.0
+                    mat_secos[i, j] = 0.0
+                    mat_aridos[i, j] = 0.0
+                    mat_analogo[i, j] = 0.0
+                    mat_sts[i, j] = 0.0
+                    mat_trans[i, j] = 0.0
+                    mat_ww[i, j] = 0.0
+                    continue
+
+                if total == 0:
+                    continue
+                    
+                pct_fallido = (len(subset[subset['Cat_Masa'] == '< 0.1 M_E']) / total) * 100
+                pct_exito = (len(subset[subset['Cat_Masa'] == '> 0.1 M_E (No iso)']) / total) * 100
+                pct_iso = (len(subset[subset['Cat_Masa'] == 'Isolation Mass']) / total) * 100
+                
+                subset_exitosos = subset[subset['Exitoso']]
+                total_exitosos = len(subset_exitosos)
+                
+                if total_exitosos > 0:
+                    pct_secos = (len(subset_exitosos[subset_exitosos['Cat_Agua'] == '0% Agua']) / total_exitosos) * 100
+                    pct_aridos = (len(subset_exitosos[subset_exitosos['Cat_Agua'] == 'Mundos Áridos']) / total_exitosos) * 100
+                    pct_analogo = (len(subset_exitosos[subset_exitosos['Cat_Agua'] == 'Análogo Terrestre Estricto']) / total_exitosos) * 100
+                    pct_sts = (len(subset_exitosos[subset_exitosos['Cat_Agua'] == 'Súper-Tierra Seca']) / total_exitosos) * 100
+                    pct_trans = (len(subset_exitosos[subset_exitosos['Cat_Agua'] == 'Transición (0.1%-10%)']) / total_exitosos) * 100
+                    pct_ww = (len(subset_exitosos[subset_exitosos['Cat_Agua'] == 'Water Worlds (>10%)']) / total_exitosos) * 100
+                else:
+                    pct_secos = 0.0
+                    pct_aridos = 0.0
+                    pct_analogo = 0.0
+                    pct_sts = 0.0
+                    pct_trans = 0.0
+                    pct_ww = 0.0
+                
+                mat_fallido[i, j] = pct_fallido
+                mat_exito[i, j] = pct_exito
+                mat_iso[i, j] = pct_iso
+                mat_secos[i, j] = pct_secos
+                mat_aridos[i, j] = pct_aridos
+                mat_analogo[i, j] = pct_analogo
+                mat_sts[i, j] = pct_sts
+                mat_trans[i, j] = pct_trans
+                mat_ww[i, j] = pct_ww
+
+        fig, axes = plt.subplots(3, 3, figsize=(18, 15))
+        axes = axes.flatten()
+        
+        matrices = [
+            (mat_fallido, r"% Fallidos (< 0.1 $M_\oplus$)", "Reds"),
+            (mat_exito, r"% Superviv. ($> 0.1 M_\oplus$, No iso)", "Blues"),
+            (mat_iso, r"% Alcanzan $M_{\mathrm{iso}}$", "Purples"),
+            (mat_secos, "% Secos Absolutos (0%)", "Greys"),
+            (mat_aridos, "% Mundos Áridos (< 0.01%)", "Oranges"),
+            (mat_analogo, r"% Análogos Estrictos (0.01-0.1%, $\leq 1 M_\oplus$)", "Greens"),
+            (mat_sts, r"% Súper-Tierras Secas (0.01-0.1%, $> 1 M_\oplus$)", "YlGn"),
+            (mat_trans, "% Transición (0.1-10%)", "GnBu"),
+            (mat_ww, "% Water Worlds (> 10% agua)", "PuBuGn")
+        ]
+        
+        x_labels = [f"{a:g}" for a in alphas]
+        y_labels = [f"{v:g}" for v in vfrags]
+        
+        for k, (mat, title, cmap) in enumerate(matrices):
+            ax = axes[k]
+            
+            # Crear matriz de anotaciones personalizadas
+            annot_array = np.empty_like(mat, dtype=object)
+            for i in range(mat.shape[0]):
+                for j in range(mat.shape[1]):
+                    if np.isnan(mat[i, j]):
+                        annot_array[i, j] = ""
+                    else:
+                        annot_array[i, j] = f"{mat[i, j]:.0f}"
+
+            sns.heatmap(mat, annot=annot_array, fmt="", cmap=cmap, 
+                        vmin=0, vmax=100,
+                        cbar_kws={'label': '%'}, 
+                        xticklabels=x_labels if k >= 6 else False, 
+                        yticklabels=y_labels, ax=ax, 
+                        annot_kws={"size": 14, "weight": "bold"})
+            
+            # Forzar texto S/N en celdas NaN (porque seaborn heatmap ignora el text de NaN)
+            for i in range(mat.shape[0]):
+                for j in range(mat.shape[1]):
+                    if np.isnan(mat[i, j]):
+                        ax.text(j + 0.5, i + 0.5, "S/N", ha="center", va="center", color="black", fontsize=14, weight="bold")
+                        
+            ax.set_title(title, fontsize=15, pad=15)
+            if k >= 6:
+                ax.set_xlabel(r'Viscosidad Turbulenta ($\alpha$)', fontsize=14)
+            if k % 3 == 0:
+                ax.set_ylabel(r'$v_{\mathrm{frag}}$ [m/s]', fontsize=14)
+            ax.tick_params(axis='x', rotation=45)
+                
+        main_title = 'Síntesis Cuantitativa de Poblaciones Planetarias'
+        if scenario_name:
+            safe_scenario_name = scenario_name.replace("M_iso", r"$M_{\mathrm{iso}}$")
+            main_title += f" - {safe_scenario_name}"
+        fig.suptitle(main_title, fontsize=18, y=1.02)
+        
+        fig.tight_layout()
+        fig.savefig(fig_path, dpi=300, bbox_inches="tight")
+        
+        if save_main:
+            # Also save the MAIN figure separately as requested (just survival)
+            fig_main, ax_main = plt.subplots(figsize=(10, 6))
+            sns.heatmap(mat_exito, annot=True, fmt=".0f", cmap="Blues", 
+                        vmin=0, vmax=100,
+                        cbar_kws={'label': '% de planetas que superan 0.1 $M_\oplus$'}, 
+                        xticklabels=x_labels, yticklabels=y_labels, ax=ax_main, 
+                        annot_kws={"size": 16, "weight": "bold"})
+            ax_main.set_title(f"Supervivencia Planetaria (>0.1 $M_\oplus$) - {scenario_name}", fontsize=16, pad=15)
+            ax_main.set_xlabel(r'Viscosidad Turbulenta ($\alpha$)', fontsize=14)
+            ax_main.set_ylabel(r'Veloc. Frag. ($v_{frag}$) [m/s]', fontsize=14)
+            fig_main.tight_layout()
+            main_path = fig_path.replace(".png", "_main.png")
+            fig_main.savefig(main_path, dpi=300, bbox_inches="tight")
+            plt.close(fig_main)
+            print(f"-> Grilla Principal guardada en: {main_path}")
+        
+        plt.close(fig)
+        print(f"-> Grilla Cuantitativa guardada en: {fig_path}")
+        return fig, axes
+
+    @staticmethod
+    def plot_poblacion_facet_scatter(data_list, fig_path, scenario_name=None, mass_threshold=0.1):
+        import pandas as pd
+        import matplotlib.pyplot as plt
+        import matplotlib.ticker as ticker
+        import matplotlib.patheffects as pe
+        import numpy as np
+        import math
+        import os
+
+        os.makedirs(os.path.dirname(fig_path), exist_ok=True)
+        PlotterPopulation._set_publication_style()
+
+        if isinstance(data_list, list):
+            print("Error: Se requiere un DataFrame pre-compilado, no una lista.")
+            return
+
+        df_cat = data_list[data_list['Is_Valid'] == True].copy()
+        if df_cat.empty: return
+        
+        # Mapear columnas
+        df_cat['m_final'] = df_cat['M_final']
+        df_cat['f_water_final'] = df_cat['frac_h2o_percent'] / 100.0
+        df_cat['f_water_plot'] = df_cat['f_water_final'].apply(lambda x: max(x, 1e-5))
+        df = df_cat
+        
+        if df.empty: return
+        
+        unique_alphas = sorted(df["alpha"].dropna().unique())
+        n_alphas = len(unique_alphas)
+        if n_alphas == 0: return
+        
+        cols = min(n_alphas, 4)
+        rows = math.ceil(n_alphas / cols)
+        
+        fig, axes = plt.subplots(rows, cols, figsize=(5 * cols, 4 * rows), sharex=True, sharey=True)
+        plt.subplots_adjust(wspace=0.05, hspace=0.1)
+        axes = np.atleast_1d(axes).flatten()
+        
+        y_top = max(10.0, df["m_final"].max() * 2)
+        if np.isnan(y_top) or y_top < 1e-3: y_top = 10.0
+        
+        unique_vfrags = sorted(df["v_frag"].dropna().unique())
+        vfrag_colors = {1.0: '#1f77b4', 3.0: '#ff7f0e', 10.0: '#2ca02c'}
+        vfrag_markers = {1.0: 'o', 3.0: 's', 10.0: '^'}
+        vfrag_sizes = {1.0: 80, 3.0: 75, 10.0: 90}
+        default_colors = plt.rcParams['axes.prop_cycle'].by_key()['color']
+        
+        # Fijar semilla para que el jitter sea reproducible
+        np.random.seed(42)
+        
+        for i in range(len(axes)):
+            ax = axes[i]
+            if i >= n_alphas:
+                ax.set_visible(False)
+                continue
+                
+            alpha = unique_alphas[i]
+            sub = df[df["alpha"] == alpha]
+            
+            for j, vf in enumerate(unique_vfrags):
+                sub_vf = sub[sub["v_frag"] == vf]
+                if sub_vf.empty: continue
+                
+                c_val = vfrag_colors.get(vf, default_colors[j % len(default_colors)])
+                m_val = vfrag_markers.get(vf, 'o')
+                s_val = vfrag_sizes.get(vf, 80)
+                
+                # Jitter multiplicativo leve (± 3%) para resolver superposición en escala log
+                jitter_x = np.random.uniform(0.97, 1.03, size=len(sub_vf))
+                jitter_y = np.random.uniform(0.97, 1.03, size=len(sub_vf))
+                
+                x_plot = sub_vf["f_water_plot"] * jitter_x
+                y_plot = sub_vf["m_final"] * jitter_y
+                
+                ax.scatter(
+                    x_plot, y_plot,
+                    color=c_val, marker=m_val, label=rf"$v_{{\rm frag}}={int(vf)}$ m/s" if i == 0 else "",
+                    s=s_val, alpha=0.5, edgecolors="white", linewidth=0.6, zorder=3
+                )
+            
+            ax.set_xscale("log")
+            ax.set_yscale("log")
+            ax.set_xlim(5e-6, 1.5)
+            ax.set_ylim(1e-3, y_top)
+            
+            ax.yaxis.set_minor_locator(ticker.LogLocator(base=10.0, subs=np.arange(2, 10) * 1.0, numticks=15))
+            ax.tick_params(which='major', direction='in', top=True, right=True, bottom=True, left=True, length=6, width=1.0)
+            ax.tick_params(which='minor', direction='in', top=True, right=True, bottom=True, left=True, length=3, width=0.8)
+            
+            ax.add_patch(plt.Rectangle((1e-4, 0.1), 1e-3 - 1e-4, 1.0 - 0.1, 
+                                       facecolor='mediumseagreen', alpha=0.15, zorder=1))
+            ax.add_patch(plt.Rectangle((0.1, 0.1), 1.5 - 0.1, y_top - 0.1, 
+                                       facecolor='dodgerblue', alpha=0.15, zorder=1))
+            
+            ax.axhline(0.1, color="dimgray", linestyle="--", linewidth=1.5, alpha=0.8, zorder=2)
+            ax.axvline(1e-5, color="dimgray", linestyle=":", linewidth=1, alpha=0.5, zorder=2)
+            
+            ax.text(0.05, 0.95, rf"$\alpha = {alpha:g}$", transform=ax.transAxes, 
+                    ha='left', va='top', fontsize=14, 
+                    bbox=dict(boxstyle='round,pad=0.2', facecolor='white', alpha=0.8, edgecolor='none'), zorder=4)
+                    
+            if i % cols == 0:
+                ax.set_ylabel(r"Masa Final ($M_\oplus$)")
+                
+            if i >= cols * (rows - 1) or i + cols >= n_alphas:
+                ax.set_xlabel("Fracción de Agua Final")
+                ax.set_xticks([1e-5, 1e-4, 1e-3, 1e-2, 1e-1, 1.0])
+                ax.set_xticklabels(["0%\n(Secos)", "0.01%", "0.1%", "1%", "10%", "100%"])
+                
+        title = "Gráfico de Dispersión en Facetas (Masa vs. Agua)"
+        if scenario_name: title += f" - {scenario_name}"
+        fig.suptitle(title, fontsize=20, y=1.05)
+        
+        handles, labels = axes[0].get_legend_handles_labels()
+        if handles:
+            fig.legend(handles, labels, loc='lower center', bbox_to_anchor=(0.5, 0.98), ncol=len(unique_vfrags), fontsize=14, frameon=False)
+        
+        fig.savefig(fig_path, dpi=300, bbox_inches="tight")
+        plt.close(fig)
+        print(f"-> Facet Grid Scatter guardado en: {fig_path}")
         return fig, axes

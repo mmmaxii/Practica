@@ -433,7 +433,7 @@ def main():
             
         if choice in ['1', '4']:
             generar_bubble_mosaic_sinusoidal(v_frag_target)
-            generar_espaciotemporales_sinusoidal(v_frag_target)
+            # generar_espaciotemporales_sinusoidal(v_frag_target)
 
     print(f"\n[ÉXITO] Todos los mosaicos generados en {DIRECTORIO_SALIDA}")
 

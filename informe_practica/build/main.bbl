@@ -1,83 +1,207 @@
-\begin{thebibliography}{13}
-\providecommand{\natexlab}[1]{#1}
-\providecommand{\url}[1]{\texttt{#1}}
-\expandafter\ifx\csname urlstyle\endcsname\relax
-  \providecommand{\doi}[1]{doi: #1}\else
-  \providecommand{\doi}{doi: \begingroup \urlstyle{rm}\Url}\fi
+\begin{thebibliography}{}
+\expandafter\ifx\csname natexlab\endcsname\relax\def\natexlab#1{#1}\fi
+\providecommand{\url}[1]{\href{#1}{#1}}
+\providecommand{\dodoi}[1]{doi:~\href{http://doi.org/#1}{\nolinkurl{#1}}}
+\providecommand{\doeprint}[1]{\href{http://ascl.net/#1}{\nolinkurl{http://ascl.net/#1}}}
+\providecommand{\doarXiv}[1]{\href{https://arxiv.org/abs/#1}{\nolinkurl{https://arxiv.org/abs/#1}}}
 
-\bibitem[Akiyama et~al.(2016)Akiyama, Hasegawa, Hayashi, and
-  Iguchi]{Akiyama2016}
-E.~Akiyama, Y.~Hasegawa, M.~Hayashi, and S.~Iguchi.
-\newblock Planetary system formation in protoplanetary disk around hl tauri.
-\newblock \emph{The Astrophysical Journal}, 818\penalty0 (2):\penalty0 157,
-  2016.
+\bibitem[{{Abod} {et~al.}(2019){Abod}, {Simon}, {Li}, {Armitage}, {Youdin}, \&
+  {Kretke}}]{2019ApJ...883..192A}
+{Abod}, C.~P., {Simon}, J.~B., {Li}, R., {et~al.} 2019, \apj, 883, 192,
+  \dodoi{10.3847/1538-4357/ab40a3}
 
-\bibitem[Birnstiel et~al.(2012)Birnstiel, Klahr, and Ercolano]{Birnstiel2012}
-T.~Birnstiel, H.~Klahr, and B.~Ercolano.
-\newblock A simple model for dust evolution in protoplanetary disks.
-\newblock \emph{Astronomy and Astrophysics}, 539:\penalty0 A148, 2012.
+\bibitem[{{Akiyama} {et~al.}(2016){Akiyama}, {Hasegawa}, {Hayashi}, \&
+  {Iguchi}}]{Akiyama2016}
+{Akiyama}, E., {Hasegawa}, Y., {Hayashi}, M., \& {Iguchi}, S. 2016, \apj, 818,
+  158, \dodoi{10.3847/0004-637X/818/2/158}
 
-\bibitem[Drążkowska and Alibert(2023)]{Drazkowska2023}
-J.~Drążkowska and Y.~Alibert.
-\newblock Planet formation theory in the context of pebble accretion.
-\newblock \emph{Astronomy and Astrophysics Review}, 31:\penalty0 3, 2023.
+\bibitem[{{ALMA Partnership} {et~al.}(2015)}]{ALMAPartnership2015}
+{ALMA Partnership}, {et~al.} 2015, \apjl, 808, L3,
+  \dodoi{10.1088/2041-8205/808/1/L3}
 
-\bibitem[Drążkowska et~al.(2021)Drążkowska, Stammler, and
-  Birnstiel]{Drazkowska2021}
-Joanna Drążkowska, Sebastian~M. Stammler, and Til Birnstiel.
-\newblock Pebble predictor v1.0, 2021.
+\bibitem[{{Andama} {et~al.}(2022){Andama}, {Ndugu}, {Anguma}, \&
+  {Jurua}}]{Andama2022}
+{Andama}, G., {Ndugu}, N., {Anguma}, S.~K., \& {Jurua}, E. 2022, \mnras, 512,
+  5278, \dodoi{10.1093/mnras/stac772}
 
-\bibitem[Johansen and Lambrechts(2017)]{JohansenLambrechts2017}
-Anders Johansen and Michiel Lambrechts.
-\newblock Forming planets via pebble accretion.
-\newblock \emph{Annual Review of Earth and Planetary Sciences}, 45:\penalty0
-  359--387, 2017.
+\bibitem[{{Andrews} {et~al.}(2018){Andrews}, {Huang}, {P{\'e}rez}, {Isella},
+  {Dullemond}, {Kurtovic}, {Guzm{\'a}n}, {Carpenter}, {Wilner}, {Zhang}, {Zhu},
+  {Birnstiel}, {Bai}, {Benisty}, {Hughes}, {\"O}berg, \& {Ricci}}]{Andrews2018}
+{Andrews}, S.~M., {Huang}, J., {P{\'e}rez}, L.~M., {et~al.} 2018, \apjl, 869,
+  L41, \dodoi{10.3847/2041-8213/aaf741}
 
-\bibitem[Krijt(2025)]{Krijt2025}
-S.~et~al. Krijt.
-\newblock Cosmic cascades: How disk substructure regulates the flow of water to
-  inner planetary systems.
-\newblock \emph{arXiv preprint arXiv:2508.10402}, 2025.
+\bibitem[{{Appelgren} {et~al.}(2025){Appelgren}, {Johansen}, {Lambrechts},
+  {J{\o}rgensen}, {van der Marel}, {Ohashi}, \& {Tobin}}]{Appelgren2025}
+{Appelgren}, J., {Johansen}, A., {Lambrechts}, M., {et~al.} 2025, \aap, 694,
+  A311, \dodoi{10.1051/0004-6361/202450923}
 
-\bibitem[Laibe et~al.(2012)Laibe, Gonzalez, and Maddison]{Laibe2012}
-Guillaume Laibe, Jean-Francois Gonzalez, and Sarah~T. Maddison.
-\newblock Revisiting the radial-drift barrier of planet formation.
-\newblock \emph{Astronomy \& Astrophysics}, 537:\penalty0 A61, 2012.
+\bibitem[{{Appelgren} {et~al.}(2020){Appelgren}, {Lambrechts}, \&
+  {Johansen}}]{Appelgren2020}
+{Appelgren}, J., {Lambrechts}, M., \& {Johansen}, A. 2020, \aap, 638, A156,
+  \dodoi{10.1051/0004-6361/202037650}
 
-\bibitem[Lambrechts and Johansen(2014)]{Lambrechts2014}
-M.~Lambrechts and A.~Johansen.
-\newblock Forming the cores of giant planets from the radial pebble flux in
-  protoplanetary discs.
-\newblock \emph{Astronomy and Astrophysics}, 572:\penalty0 A107, 2014.
+\bibitem[{{Astrakhantsev} {et~al.}(2026){Astrakhantsev}, {Krijt}, {Savvidou},
+  \& {Bitsch}}]{Astrakhantsev2026}
+{Astrakhantsev}, D., {Krijt}, S., {Savvidou}, S., \& {Bitsch}, B. 2026, \mnras,
+  548, stag721, \dodoi{10.1093/mnras/stag721}
 
-\bibitem[McCloat et~al.(2025)McCloat, Mulders, and Fieber-Beyer]{McCloat2025}
-S.~McCloat, G.~D. Mulders, and S.~Fieber-Beyer.
-\newblock Diversity in planetary architectures from pebble accretion: Water
-  delivery to the habitable zone with pebble snow.
-\newblock \emph{arXiv preprint arXiv:2509.14101}, 2025.
+\bibitem[{{Ataiee} {et~al.}(2018){Ataiee}, {Baruteau}, {Alibert}, \&
+  {Benz}}]{Ataiee2018}
+{Ataiee}, S., {Baruteau}, C., {Alibert}, Y., \& {Benz}, W. 2018, \aap, 615,
+  A110, \dodoi{10.1051/0004-6361/201732026}
 
-\bibitem[Ormel(2017)]{Ormel2017}
-C.~W. Ormel.
-\newblock The emerging paradigm of pebble accretion.
-\newblock \emph{Formation, Evolution, and Dynamics of Young Solar Systems},
-  pages 197--228, 2017.
+\bibitem[{{Banzatti} {et~al.}(2023){Banzatti}, {Pontoppidan}, {Carr},
+  {Jellison}, {Pascucci}, {Najita}, {Romero-Mirza}, {\"O}berg, {Kalyaan},
+  {Pinilla}, {Krijt}, {Long}, {Lambrechts}, {Rosotti}, {Herczeg}, {Salyk},
+  {Zhang}, {Bergin}, {Ballering}, {Meyer}, {Bruderer}, \& {Jdiscs
+  Collaboration}}]{Banzatti2023}
+{Banzatti}, A., {Pontoppidan}, K.~M., {Carr}, J.~S., {et~al.} 2023, \apjl, 957,
+  L22, \dodoi{10.3847/2041-8213/acf5ec}
 
-\bibitem[Partnership and Brogan(2015)]{ALMAPartnership2015}
-ALMA Partnership and C.~L. et~al. Brogan.
-\newblock The 2014 alma long baseline campaign: First results from high angular
-  resolution observations toward the hl tau region.
-\newblock \emph{The Astrophysical Journal Letters}, 808\penalty0 (1):\penalty0
-  L3, 2015.
+\bibitem[{{Baruteau} {et~al.}(2019){Baruteau}, {Barraza}, {P{\'e}rez},
+  {Casassus}, {Dong}, {Lyra}, {Marino}, {Christiaens}, {Zhu}, {Carmona},
+  {Debras}, \& {Alarcon}}]{Baruteau2019}
+{Baruteau}, C., {Barraza}, M., {P{\'e}rez}, S., {et~al.} 2019, \mnras, 486,
+  304, \dodoi{10.1093/mnras/stz802}
 
-\bibitem[Pfeil et~al.(2025)Pfeil, Kaufmann, and Paetzold]{Pfeil2025}
-T.~Pfeil, N.~Kaufmann, and S.~C. Paetzold.
-\newblock Tripodpy: 1d tri-population size distributions for dust evolution in
-  protoplanetary disks.
-\newblock \emph{arXiv preprint arXiv:2511.20764}, 2025.
+\bibitem[{{Birnstiel} {et~al.}(2012){Birnstiel}, {Klahr}, \&
+  {Ercolano}}]{Birnstiel2012}
+{Birnstiel}, T., {Klahr}, H., \& {Ercolano}, B. 2012, \aap, 539, A148,
+  \dodoi{10.1051/0004-6361/201118136}
 
-\bibitem[Pierens and Raymond(2024)]{PierensRaymond2024}
-Arnaud Pierens and Sean~N. Raymond.
-\newblock On the growth and evolution of low-mass planets in pressure bumps.
-\newblock \emph{Astronomy \& Astrophysics}, 2024.
+\bibitem[{{Bitsch} {et~al.}(2015){Bitsch}, {Lambrechts}, \&
+  {Johansen}}]{Bitsch2015}
+{Bitsch}, B., {Lambrechts}, M., \& {Johansen}, A. 2015, \aap, 582, A112,
+  \dodoi{10.1051/0004-6361/201526463}
+
+\bibitem[{{Bitsch} {et~al.}(2021){Bitsch}, {Raymond}, {Buchhave},
+  {Bello-Arufe}, {Rathcke}, \& {Schneider}}]{Bitsch2021}
+{Bitsch}, B., {Raymond}, S.~N., {Buchhave}, L.~A., {et~al.} 2021, \aap, 649,
+  L5, \dodoi{10.1051/0004-6361/202140793}
+
+\bibitem[{{Blum}(2018)}]{Blum2018}
+{Blum}, J. 2018, Space Sci. Rev., 214, 52, \dodoi{10.1007/s11214-018-0486-5}
+
+\bibitem[{{Booth} {et~al.}(2017){Booth}, {Clarke}, {Madhusudhan}, \&
+  {Ilee}}]{Booth2017}
+{Booth}, R.~A., {Clarke}, C.~J., {Madhusudhan}, N., \& {Ilee}, J.~D. 2017,
+  \mnras, 469, 3994, \dodoi{10.1093/mnras/stx1103}
+
+\bibitem[{{Booth} \& {Ilee}(2019)}]{Booth2019}
+{Booth}, R.~A., \& {Ilee}, J.~D. 2019, \mnras, 487, 3998,
+  \dodoi{10.1093/mnras/stz1488}
+
+\bibitem[{{Carrera} {et~al.}(2021){Carrera}, {Simon}, {Li}, {Kretke}, \&
+  {Klahr}}]{Carrera2021}
+{Carrera}, D., {Simon}, J.~B., {Li}, R., {Kretke}, K.~A., \& {Klahr}, H. 2021,
+  \aj, 161, 96, \dodoi{10.3847/1538-3881/abd4d9}
+
+\bibitem[{{Dominik} \& {Tielens}(1997)}]{Dominik1997}
+{Dominik}, C., \& {Tielens}, A.~G.~G.~M. 1997, \apj, 480, 647,
+  \dodoi{10.1086/303996}
+
+\bibitem[{{Dr{\k{a}}{\.z}kowska} {et~al.}(2021){Dr{\k{a}}{\.z}kowska},
+  {Stammler}, \& {Birnstiel}}]{Drazkowska2021}
+{Dr{\k{a}}{\.z}kowska}, J., {Stammler}, S.~M., \& {Birnstiel}, T. 2021, \aap,
+  647, A15, \dodoi{10.1051/0004-6361/202039925}
+
+\bibitem[{{Dr{\k{a}}{\.z}kowska} {et~al.}(2023)}]{Drazkowska2023}
+{Dr{\k{a}}{\.z}kowska}, J., {et~al.} 2023, in Astronomical Society of the
+  Pacific Conference Series, Vol. 534, Protostars and Planets VII, ed.
+  S.~{Inutsuka}, Y.~{Aikawa}, T.~{Muto}, K.~{Tomida}, \& M.~{Tamura}, 717,
+  \dodoi{10.48550/arXiv.2203.09759}
+
+\bibitem[{Duffell(2020)}]{Duffell2020}
+Duffell, P.~C. 2020, Astrophysical Journal, 889, 16
+
+\bibitem[{Gundlach \& Blum(2014)}]{Gundlach_2014}
+Gundlach, B., \& Blum, J. 2014, The Astrophysical Journal, 798, 34,
+  \dodoi{10.1088/0004-637x/798/1/34}
+
+\bibitem[{{Hartmann} {et~al.}(1998){Hartmann}, {Calvet}, {Gullbring}, \&
+  {D'Alessio}}]{Hartmann1998}
+{Hartmann}, L., {Calvet}, N., {Gullbring}, E., \& {D'Alessio}, P. 1998, \apj,
+  495, 385, \dodoi{10.1086/305277}
+
+\bibitem[{{Johansen} \& {Lambrechts}(2017)}]{Johansen2017}
+{Johansen}, A., \& {Lambrechts}, M. 2017, Annual Review of Earth and Planetary
+  Sciences, 45, 359, \dodoi{10.1146/annurev-earth-063016-020226}
+
+\bibitem[{Kanagawa {et~al.}(2016)Kanagawa, Muto, Tanaka, Tanigawa, Takeuchi,
+  Tsukagoshi, \& Momose}]{Kanagawa2016}
+Kanagawa, K.~D., Muto, T., Tanaka, H., {et~al.} 2016, Publications of the
+  Astronomical Society of Japan, 68, \dodoi{10.1093/pasj/psw037}
+
+\bibitem[{{Kaufmann} {et~al.}(2025)}]{Kaufmann2025}
+{Kaufmann}, N.~L., {et~al.} 2025, arXiv e-prints, arXiv:2511.20764,
+  \dodoi{10.48550/arXiv.2511.20764}
+
+\bibitem[{Krijt {et~al.}(2025)}]{Krijt2025}
+Krijt, S., {et~al.} 2025, Cosmic cascades: How disk substructure regulates the
+  flow of water to inner planetary systems.
+\newblock \doarXiv{2508.10402}
+
+\bibitem[{Laibe {et~al.}(2012)Laibe, Gonzalez, \& Maddison}]{Laibe2012}
+Laibe, G., Gonzalez, J.-F., \& Maddison, S.~T. 2012, Astronomy &amp;
+  Astrophysics, 537, A61, \dodoi{10.1051/0004-6361/201015349}
+
+\bibitem[{{Lambrechts} \& {Johansen}(2014)}]{Lambrechts2014}
+{Lambrechts}, M., \& {Johansen}, A. 2014, \aap, 572, A107,
+  \dodoi{10.1051/0004-6361/201424343}
+
+\bibitem[{{Lau} {et~al.}(2024){Lau}, {Lee}, {Brasser}, \&
+  {Matsumura}}]{Lau2024}
+{Lau}, T. C.~H., {Lee}, M.~H., {Brasser}, R., \& {Matsumura}, S. 2024, \aap,
+  683, A204, \dodoi{10.1051/0004-6361/202347863}
+
+\bibitem[{{Lyra} {et~al.}(2023){Lyra}, {Johansen}, {Ca{\~n}as}, \&
+  {Yang}}]{Lyra2023}
+{Lyra}, W., {Johansen}, A., {Ca{\~n}as}, M.~H., \& {Yang}, C.-C. 2023, \apj,
+  946, 60, \dodoi{10.3847/1538-4357/acaf5b}
+
+\bibitem[{McCloat {et~al.}(2025)McCloat, Mulders, \&
+  Fieber-Beyer}]{McCloat2025}
+McCloat, S., Mulders, G.~D., \& Fieber-Beyer, S. 2025, The Astrophysical
+  Journal, 992, 200, \dodoi{10.3847/1538-4357/ae0301}
+
+\bibitem[{{Musiolik} \& {Wurm}(2019)}]{Musiolik_Grzegorz_Gerhard2019}
+{Musiolik}, G., \& {Wurm}, G. 2019, \apj, 873, 58,
+  \dodoi{10.3847/1538-4357/ab0428}
+
+\bibitem[{{Oka} {et~al.}(2011){Oka}, {Nakamoto}, \& {Ida}}]{Oka2011}
+{Oka}, A., {Nakamoto}, T., \& {Ida}, S. 2011, \apj, 738, 141,
+  \dodoi{10.1088/0004-637X/738/2/141}
+
+\bibitem[{{Ormel}(2017)}]{Ormel2017}
+{Ormel}, C.~W. 2017, in Astrophysics and Space Science Library, Vol. 445,
+  Formation, Evolution, and Dynamics of Young Solar Systems, ed. M.~{Pessah} \&
+  O.~{Gressel}, 197, \dodoi{10.1007/978-3-319-60609-5_7}
+
+\bibitem[{{Pfeil} {et~al.}(2024){Pfeil}, {Birnstiel}, \&
+  {Klahr}}]{Pfeil2024_teoria}
+{Pfeil}, T., {Birnstiel}, T., \& {Klahr}, H. 2024, \aap, 691, A45,
+  \dodoi{10.1051/0004-6361/202449337}
+
+\bibitem[{{Pierens} \& {Raymond}(2024)}]{Pierens2024}
+{Pierens}, A., \& {Raymond}, S.~N. 2024, \aap, 684, A199,
+  \dodoi{10.1051/0004-6361/202348923}
+
+\bibitem[{{Pinilla} {et~al.}(2012)}]{Pinilla2012}
+{Pinilla}, P., {et~al.} 2012, \aap, 538, A114,
+  \dodoi{10.1051/0004-6361/201118204}
+
+\bibitem[{{Shakura} \& {Sunyaev}(1973)}]{Shakura_sunyaev_1973}
+{Shakura}, N.~I., \& {Sunyaev}, R.~A. 1973, \aap, 24, 337
+
+\bibitem[{{Smoluchowski}(1916)}]{Smoluchowski1916}
+{Smoluchowski}, M.~V. 1916, Zeitschrift fur Physik, 17, 557
+
+\bibitem[{Stammler \& Birnstiel(2022)}]{Stammler2022}
+Stammler, S.~M., \& Birnstiel, T. 2022, Journal of Open Source Software, 7,
+  3882, \dodoi{10.21105/joss.03882}
+
+\bibitem[{{Weidenschilling}(1977)}]{Weidenschilling1977}
+{Weidenschilling}, S.~J. 1977, Monthly Notices of the Royal Astronomical
+  Society, 180, 57, \dodoi{10.1093/mnras/180.2.57}
 
 \end{thebibliography}

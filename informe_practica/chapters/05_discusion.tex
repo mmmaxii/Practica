@@ -1,0 +1,86 @@
+% =========================================================
+% CAPÍTULO 5 — DISCUSIÓN
+% =========================================================
+
+\chapter{Discusión}
+\label{cap:discusion}
+%=========================================================
+\section{Regulación del Flujo de Pebbles y el Filtro Aerodinámico}
+%=========================================================
+
+El resultado central de este trabajo es que las subestructuras no actúan únicamente como trampas estáticas de polvo, sino como reguladores temporales del flujo radial de \textit{pebbles}. En lugar de modificar exclusivamente la cantidad total de sólidos disponibles para la acreción, alteran la cronología y la duración del suministro de material hacia los embriones planetarios. Como consecuencia, la evolución temporal del flujo de \textit{pebbles} emerge como el mecanismo que conecta el crecimiento planetario con la composición final de los planetas.
+
+La dinámica de este proceso es evidente en los diagramas de Hovmöller (Figuras \ref{fig:hovmoller_vfrag}--\ref{fig:hovmoller_turbulencia}), donde se observa un incremento pronunciado en la tasa de acreción alrededor de $1\,{\rm Myr}$. Este evento coincide con el paso de la \textit{snowline} por la órbita del embrión. Cuando esto ocurre, la disminución de la velocidad de fragmentación ($v_{\rm frag}$, desde $10\,{\rm m\,s^{-1}}$ para agregados ricos en hielo hasta $1\,{\rm m\,s^{-1}}$ para silicatos) reduce el tamaño máximo alcanzable por los \textit{pebbles} y, en consecuencia, su número de Stokes. La población sólida previamente retenida en la trampa de presión experimenta entonces un episodio de liberación hacia el disco interno, incrementando temporalmente el flujo de \textit{pebbles} disponible para la acreción.
+
+Este comportamiento constituye una manifestación natural del escenario de \textit{pebble snow} propuesto por \citet{Drazkowska2021}. En dicho escenario, la migración de la \textit{snowline} controla el transporte de material rico en hielo hacia regiones inicialmente secas del disco. Nuestros resultados muestran que la presencia de subestructuras potencia este mecanismo al generar reservorios temporales de \textit{pebbles}, cuya liberación ocurre precisamente cuando la evolución térmica modifica las propiedades de fragmentación del polvo. De este modo, el enriquecimiento tardío en agua no depende únicamente de la migración de la \textit{snowline}, sino también de la capacidad de las trampas de presión para almacenar y liberar sólidos a lo largo de la evolución del disco.
+
+La importancia de esta regulación temporal resulta consistente con estudios recientes sobre la evolución del polvo en discos estructurados. Por ejemplo, \citet{Appelgren2025} muestran que las subestructuras modifican significativamente la evolución del flujo de \textit{pebbles} mediante la retención de sólidos, mientras que \citet{Lau2024} encuentran que la presencia de anillos de presión altera de manera sustancial el suministro de material hacia las regiones internas respecto a los modelos de discos suaves. En este contexto, nuestros resultados extienden estas ideas al mostrar cómo dicha modulación temporal del flujo se traduce directamente en diferencias tanto en el crecimiento planetario como en el contenido final de agua.
+
+La relevancia del mecanismo propuesto se hace aún más evidente al analizar el caso de control donde se elimina el contraste en la velocidad de fragmentación, adoptando un valor uniforme de $v_{\rm frag}=1\,{\rm m\,s^{-1}}$ en todo el disco. En estas simulaciones, el tamaño máximo de los \textit{pebbles} y su número de Stokes evolucionan de forma continua, desapareciendo el episodio de liberación asociado al paso de la \textit{snowline}. Como consecuencia, la trampa de presión actúa únicamente como un filtro aerodinámico estático, reduciendo de manera sostenida el flujo de sólidos hacia el embrión. Bajo estas condiciones, el crecimiento permanece limitado y las masas finales no superan el régimen marciano.
+
+En conjunto, estos resultados indican que el crecimiento planetario más eficiente no ocurre cuando las trampas bloquean completamente el transporte de sólidos, sino cuando actúan como reservorios temporales capaces de almacenar y liberar \textit{pebbles} conforme evoluciona la estructura térmica del disco. En este sentido, las subestructuras funcionan como reguladores dinámicos del flujo de \textit{pebbles}, más que como simples barreras aerodinámicas.
+
+%=========================================================
+%=========================================================
+\section{La Isla de Crecimiento y la Influencia de la Turbulencia}
+%=========================================================
+
+La síntesis poblacional revela que el crecimiento planetario eficiente no varía de manera monótona con los parámetros del disco, sino que se concentra en una región bien definida del espacio de parámetros, la cual hemos denominado \textit{Isla de Crecimiento} (Figura \ref{fig:mapa_global}). En nuestras simulaciones, esta región se caracteriza por viscosidades moderadas o bajas ($\alpha \lesssim 10^{-3}$) y masas de los gaps del orden de $M_{\rm gap}\sim0.1\,M_{\rm Jup}$. Dentro de este régimen, los embriones alcanzan masas superiores a $0.1\,M_\oplus$, mientras que fuera de él el crecimiento se vuelve significativamente menos eficiente.
+
+La existencia de esta región óptima refleja el equilibrio entre dos procesos contrapuestos. Por una parte, subestructuras demasiado débiles permiten que los \textit{pebbles} deriven rápidamente hacia la estrella antes de ser incorporados por el embrión. Por otra, gaps demasiado masivos ($M_{\rm gap}\gtrsim0.3\,M_{\rm Jup}$) retienen el material sólido con tal eficiencia que reducen drásticamente el flujo disponible para la acreción. El crecimiento planetario más eficiente ocurre, por tanto, cuando las trampas de presión funcionan como reservorios temporales capaces de regular el suministro de sólidos sin bloquearlo completamente.
+
+Los diagramas de masa poblacional muestran además que esta ventana de formación depende de manera crítica del nivel de turbulencia. Para $\alpha\ge3\times10^{-3}$ ninguna configuración alcanza $0.1\,M_\oplus$. 
+En el extremo opuesto, cuando $\alpha \sim 10^{-4}$ acoplado a $v_{\rm frag} = 10$ m/s, 
+la acumulación es tan eficiente que emerge una bimodalidad composicional 
+que se discute en la Sección 5.3. Físicamente, un incremento de la turbulencia aumenta las velocidades relativas entre partículas, limita su crecimiento por fragmentación y reduce sus números de Stokes. Como consecuencia, los \textit{pebbles} permanecen más fuertemente acoplados al gas, incrementando la escala de altura del polvo ($H_{\rm d}$) y desplazando la acreción hacia un régimen tridimensional menos eficiente.
+
+Este comportamiento resulta consistente con el marco teórico de la acreción de \textit{pebbles}, donde la eficiencia de captura depende fuertemente tanto del número de Stokes como del espesor de la capa de polvo \citep{Bitsch2015,Ataiee2018}. Asimismo, nuestros resultados son compatibles con escenarios en los que regiones de baja turbulencia (\textit{dead zones}) favorecen el crecimiento planetario al permitir una mayor sedimentación del polvo y una transición hacia un régimen de acreción predominantemente bidimensional. En este contexto, la \textit{Isla de Crecimiento} puede interpretarse como la manifestación poblacional del equilibrio entre la regulación temporal del flujo de \textit{pebbles} por las subestructuras y la eficiencia de la acreción controlada por la turbulencia del disco.
+
+
+```latex
+%=========================================================
+\section{Bifurcación Poblacional: Planetas Secos y Ricos en Agua}
+%=========================================================
+
+Las Figuras \ref{fig:facet_lineal} y \ref{fig:facet_log} muestran una tendencia general entre la masa final de los embriones y su contenido de agua. En la mayor parte del espacio de parámetros explorado, los planetas más masivos alcanzan también las mayores fracciones de agua, del orden del $50\%$. Esta correlación no implica una relación causal directa entre la masa planetaria y el contenido de agua; en cambio, ambas propiedades emergen como consecuencia de un mismo mecanismo físico: la regulación temporal del flujo de \textit{pebbles} por las subestructuras del disco.
+
+En los regímenes donde las trampas de presión almacenan eficientemente material exterior, el crecimiento del embrión se prolonga durante tiempos comparables con la migración de la \textit{snowline}. Como resultado, una fracción significativa de la masa incorporada en las etapas finales proviene del reservorio de \textit{pebbles} ricos en hielo liberado tras el paso de la \textit{snowline}. Este enriquecimiento tardío constituye una manifestación del escenario de \textit{pebble snow}, donde la evolución térmica del disco y el transporte radial de sólidos actúan conjuntamente para suministrar agua a las regiones internas \citep{Drazkowska2021}.
+
+Sin embargo, el análisis en escala logarítmica (Figura \ref{fig:facet_log}) revela una excepción particularmente interesante. Para el régimen de muy baja turbulencia ($\alpha = 10^{-4}$) combinado con una alta velocidad de fragmentación ($v_{\rm frag}=10\,{\rm m\,s^{-1}}$), emerge una población de embriones masivos ($\ge0.1\,M_\oplus$) con fracciones de agua inferiores al $2\%$. En este caso, la elevada eficiencia de la acreción permite que el embrión alcance rápidamente su masa de aislamiento utilizando casi exclusivamente el reservorio local de silicatos. Cuando posteriormente la \textit{snowline} migra hacia el interior y libera el reservorio rico en hielos, el planeta ha reducido drásticamente su capacidad de seguir incorporando material, preservando así una composición predominantemente rocosa.
+
+Este comportamiento pone de manifiesto que la cronología relativa entre el crecimiento planetario y la evolución de la \textit{snowline} constituye un factor determinante para la composición final de los planetas. Dependiendo de cuál de estos procesos domine primero, un mismo disco puede producir tanto planetas ricos en agua como planetas predominantemente rocosos.
+
+Es importante señalar que las masas extremas obtenidas para $\alpha = 10^{-4}$ deben interpretarse con cautela. En la implementación actual, PA3Py se ejecuta en post-procesado y no retroalimenta la evolución de TriPoDPy mediante la remoción de la masa ya acretada. En condiciones de muy alta densidad superficial de sólidos, esta aproximación puede conducir a una sobreestimación cuantitativa de las masas finales. No obstante, esta limitación afecta principalmente los valores absolutos de masa y no modifica la tendencia cualitativa observada: la regulación temporal del flujo de \textit{pebbles} puede conducir a dos trayectorias evolutivas claramente diferenciadas, una dominada por el enriquecimiento tardío en agua y otra por un crecimiento temprano predominantemente rocoso.
+```
+
+
+%=========================================================
+\section{Comparación con Modelos Clásicos de Discos Suaves}
+%=========================================================
+
+En los modelos de discos suaves, la deriva radial conduce a un decaimiento casi monótono del flujo de sólidos hacia las regiones internas \citep{Lambrechts2014,Ormel2017}. Bajo este paradigma clásico, la composición final de los planetas dependía casi exclusivamente de su posición orbital inicial respecto a la línea de nieve, limitando la diversidad química observada en la síntesis poblacional.
+
+Las subestructuras rompen este comportamiento al introducir episodios discretos de acumulación y liberación de sólidos. Esta modulación temporal trasciende el concepto de barrera aerodinámica estática, proporcionando un marco físico donde el transporte de volátiles se desacopla parcialmente del decaimiento global del disco. Al retener material primigenio exterior y liberarlo de manera tardía, los discos estructurados ofrecen un camino natural para explicar el transporte de agua hacia las regiones terrestres.
+
+En este contexto, la cronología del suministro de sólidos resulta ser un factor tan determinante como el inventario inicial de masa. La interacción entre la migración de la isoterma de sublimación y la permeabilidad variable de las trampas de presión permite generar un espectro composicional mucho más amplio que el obtenido tradicionalmente en perfiles de disco suaves, conciliando la física de acreción con la diversidad observada en sistemas planetarios complejos.
+
+
+
+%=========================================================
+\section{Limitaciones del Modelo}
+%=========================================================
+
+Como todo modelo de formación planetaria, el marco desarrollado en este trabajo incorpora diversas simplificaciones que deben considerarse al interpretar los resultados. No obstante, estas limitaciones afectan principalmente la cuantificación precisa de las masas y composiciones finales, sin modificar las tendencias físicas identificadas a lo largo de las simulaciones.
+
+En primer lugar, la evolución térmica del disco se representa mediante una parametrización basada en los modelos de \citet{Oka2011}. En consecuencia, la posición de la \textit{snowline} no se obtiene de manera auto-consistente a partir de la evolución dinámica del disco, sino que corresponde a una aproximación de su migración temporal. Si bien esta simplificación puede modificar el instante exacto en que la \textit{snowline} atraviesa la órbita del embrión, no altera el mecanismo físico identificado en este trabajo, donde la cronología relativa entre la migración de la \textit{snowline} y la liberación del reservorio de pebbles controla el enriquecimiento en agua.
+
+Asimismo, el modelo considera una descripción unidimensional del disco protoplanetario. Procesos tridimensionales como la sedimentación vertical del polvo, la estructura vertical de los gaps o posibles inestabilidades hidrodinámicas no son resueltos explícitamente y se encuentran incorporados mediante parametrizaciones. Aunque estos efectos pueden modificar cuantitativamente la eficiencia de las trampas de presión, no se espera que alteren el comportamiento cualitativo asociado al almacenamiento y posterior liberación de pebbles.
+
+Una limitación adicional corresponde al acoplamiento entre TriPoDPy y PA3Py. En la implementación actual, la acreción planetaria se calcula como un proceso de post-procesado, por lo que la masa incorporada por el embrión no retroalimenta la evolución del disco. En consecuencia, la densidad superficial de pebbles no disminuye localmente debido a la acreción, lo que podría conducir a una sobreestimación moderada de las masas finales y de la cantidad total de agua incorporada. Sin embargo, dado que el crecimiento se encuentra limitado por la masa de aislamiento, este efecto permanece acotado en la mayoría de las simulaciones exitosas.
+
+Finalmente, el modelo adopta una descripción simplificada de la composición química del polvo, distinguiendo únicamente entre material seco y material rico en agua. Otros volátiles importantes, como CO, CO$_2$ o NH$_3$, no son considerados explícitamente. En consecuencia, las fracciones de agua obtenidas deben interpretarse como una aproximación al contenido total de volátiles y no como una descripción química completa de los planetas formados.
+
+En conjunto, estas simplificaciones no modifican la principal conclusión de este trabajo: las subestructuras del disco alteran la evolución temporal del flujo de pebbles y, como consecuencia, regulan simultáneamente el crecimiento planetario y el transporte de agua hacia las regiones internas.
+
+%=========================================================
+

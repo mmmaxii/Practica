@@ -39,6 +39,22 @@ INPUT C:\Users\Maxlo\AppData\Local\Programs\MiKTeX\tex\latex\geometry\geometry.c
 INPUT C:\Users\Maxlo\AppData\Local\Programs\MiKTeX\tex\latex\geometry\geometry.cfg
 INPUT C:\Users\Maxlo\AppData\Local\Programs\MiKTeX\tex\latex\tools\array.sty
 INPUT C:\Users\Maxlo\AppData\Local\Programs\MiKTeX\tex\latex\tools\array.sty
+INPUT C:\Users\Maxlo\AppData\Local\Programs\MiKTeX\tex\latex\siunitx\siunitx.sty
+INPUT C:\Users\Maxlo\AppData\Local\Programs\MiKTeX\tex\latex\siunitx\siunitx.sty
+INPUT C:\Users\Maxlo\AppData\Local\Programs\MiKTeX\tex\latex\translations\translations.sty
+INPUT C:\Users\Maxlo\AppData\Local\Programs\MiKTeX\tex\latex\translations\translations.sty
+INPUT C:\Users\Maxlo\AppData\Local\Programs\MiKTeX\tex\latex\etoolbox\etoolbox.sty
+INPUT C:\Users\Maxlo\AppData\Local\Programs\MiKTeX\tex\latex\etoolbox\etoolbox.sty
+INPUT C:\Users\Maxlo\AppData\Local\Programs\MiKTeX\tex\generic\pdftexcmds\pdftexcmds.sty
+INPUT C:\Users\Maxlo\AppData\Local\Programs\MiKTeX\tex\generic\pdftexcmds\pdftexcmds.sty
+INPUT C:\Users\Maxlo\AppData\Local\Programs\MiKTeX\tex\generic\infwarerr\infwarerr.sty
+INPUT C:\Users\Maxlo\AppData\Local\Programs\MiKTeX\tex\generic\infwarerr\infwarerr.sty
+INPUT C:\Users\Maxlo\AppData\Local\Programs\MiKTeX\tex\generic\ltxcmds\ltxcmds.sty
+INPUT C:\Users\Maxlo\AppData\Local\Programs\MiKTeX\tex\generic\ltxcmds\ltxcmds.sty
+INPUT C:\Users\Maxlo\AppData\Local\Programs\MiKTeX\tex\latex\amsmath\amstext.sty
+INPUT C:\Users\Maxlo\AppData\Local\Programs\MiKTeX\tex\latex\amsmath\amstext.sty
+INPUT C:\Users\Maxlo\AppData\Local\Programs\MiKTeX\tex\latex\amsmath\amsgen.sty
+INPUT C:\Users\Maxlo\AppData\Local\Programs\MiKTeX\tex\latex\amsmath\amsgen.sty
 INPUT C:\Users\Maxlo\AppData\Local\Programs\MiKTeX\tex\latex\graphics\graphicx.sty
 INPUT C:\Users\Maxlo\AppData\Local\Programs\MiKTeX\tex\latex\graphics\graphicx.sty
 INPUT C:\Users\Maxlo\AppData\Local\Programs\MiKTeX\tex\latex\graphics\graphics.sty
@@ -54,10 +70,6 @@ INPUT C:\Users\Maxlo\AppData\Local\Programs\MiKTeX\tex\latex\graphics-def\pdftex
 INPUT C:\Users\Maxlo\AppData\Local\Programs\MiKTeX\tex\latex\amsmath\amsmath.sty
 INPUT C:\Users\Maxlo\AppData\Local\Programs\MiKTeX\tex\latex\amsmath\amsmath.sty
 INPUT C:\Users\Maxlo\AppData\Local\Programs\MiKTeX\tex\latex\amsmath\amsopn.sty
-INPUT C:\Users\Maxlo\AppData\Local\Programs\MiKTeX\tex\latex\amsmath\amstext.sty
-INPUT C:\Users\Maxlo\AppData\Local\Programs\MiKTeX\tex\latex\amsmath\amstext.sty
-INPUT C:\Users\Maxlo\AppData\Local\Programs\MiKTeX\tex\latex\amsmath\amsgen.sty
-INPUT C:\Users\Maxlo\AppData\Local\Programs\MiKTeX\tex\latex\amsmath\amsgen.sty
 INPUT C:\Users\Maxlo\AppData\Local\Programs\MiKTeX\tex\latex\amsmath\amsbsy.sty
 INPUT C:\Users\Maxlo\AppData\Local\Programs\MiKTeX\tex\latex\amsmath\amsbsy.sty
 INPUT C:\Users\Maxlo\AppData\Local\Programs\MiKTeX\tex\latex\amsmath\amsopn.sty
@@ -73,12 +85,6 @@ INPUT C:\Users\Maxlo\AppData\Local\Programs\MiKTeX\tex\generic\kvdefinekeys\kvde
 INPUT C:\Users\Maxlo\AppData\Local\Programs\MiKTeX\tex\generic\kvdefinekeys\kvdefinekeys.sty
 INPUT C:\Users\Maxlo\AppData\Local\Programs\MiKTeX\tex\generic\pdfescape\pdfescape.sty
 INPUT C:\Users\Maxlo\AppData\Local\Programs\MiKTeX\tex\generic\pdfescape\pdfescape.sty
-INPUT C:\Users\Maxlo\AppData\Local\Programs\MiKTeX\tex\generic\ltxcmds\ltxcmds.sty
-INPUT C:\Users\Maxlo\AppData\Local\Programs\MiKTeX\tex\generic\ltxcmds\ltxcmds.sty
-INPUT C:\Users\Maxlo\AppData\Local\Programs\MiKTeX\tex\generic\pdftexcmds\pdftexcmds.sty
-INPUT C:\Users\Maxlo\AppData\Local\Programs\MiKTeX\tex\generic\pdftexcmds\pdftexcmds.sty
-INPUT C:\Users\Maxlo\AppData\Local\Programs\MiKTeX\tex\generic\infwarerr\infwarerr.sty
-INPUT C:\Users\Maxlo\AppData\Local\Programs\MiKTeX\tex\generic\infwarerr\infwarerr.sty
 INPUT C:\Users\Maxlo\AppData\Local\Programs\MiKTeX\tex\latex\hycolor\hycolor.sty
 INPUT C:\Users\Maxlo\AppData\Local\Programs\MiKTeX\tex\latex\hycolor\hycolor.sty
 INPUT C:\Users\Maxlo\AppData\Local\Programs\MiKTeX\tex\latex\hyperref\nameref.sty
@@ -89,8 +95,6 @@ INPUT C:\Users\Maxlo\AppData\Local\Programs\MiKTeX\tex\generic\gettitlestring\ge
 INPUT C:\Users\Maxlo\AppData\Local\Programs\MiKTeX\tex\generic\gettitlestring\gettitlestring.sty
 INPUT C:\Users\Maxlo\AppData\Local\Programs\MiKTeX\tex\latex\kvoptions\kvoptions.sty
 INPUT C:\Users\Maxlo\AppData\Local\Programs\MiKTeX\tex\latex\kvoptions\kvoptions.sty
-INPUT C:\Users\Maxlo\AppData\Local\Programs\MiKTeX\tex\latex\etoolbox\etoolbox.sty
-INPUT C:\Users\Maxlo\AppData\Local\Programs\MiKTeX\tex\latex\etoolbox\etoolbox.sty
 INPUT C:\Users\Maxlo\AppData\Local\Programs\MiKTeX\tex\generic\stringenc\stringenc.sty
 INPUT C:\Users\Maxlo\AppData\Local\Programs\MiKTeX\tex\generic\stringenc\stringenc.sty
 INPUT C:\Users\Maxlo\AppData\Local\Programs\MiKTeX\tex\latex\hyperref\pd1enc.def
@@ -126,12 +130,22 @@ INPUT C:\Users\Maxlo\AppData\Local\Programs\MiKTeX\tex\latex\caption\caption.sty
 INPUT C:\Users\Maxlo\AppData\Local\Programs\MiKTeX\tex\latex\caption\caption.sty
 INPUT C:\Users\Maxlo\AppData\Local\Programs\MiKTeX\tex\latex\caption\caption3.sty
 INPUT C:\Users\Maxlo\AppData\Local\Programs\MiKTeX\tex\latex\caption\caption3.sty
+INPUT C:\Users\Maxlo\AppData\Local\Programs\MiKTeX\tex\latex\float\float.sty
+INPUT C:\Users\Maxlo\AppData\Local\Programs\MiKTeX\tex\latex\float\float.sty
+INPUT C:\Users\Maxlo\AppData\Local\Programs\MiKTeX\tex\latex\graphics\color.sty
+INPUT C:\Users\Maxlo\AppData\Local\Programs\MiKTeX\tex\latex\graphics\color.sty
+INPUT C:\Users\Maxlo\AppData\Local\Programs\MiKTeX\tex\latex\graphics-cfg\color.cfg
+INPUT C:\Users\Maxlo\AppData\Local\Programs\MiKTeX\tex\latex\graphics-cfg\color.cfg
+INPUT C:\Users\Maxlo\AppData\Local\Programs\MiKTeX\tex\latex\graphics-cfg\color.cfg
+INPUT C:\Users\Maxlo\AppData\Local\Programs\MiKTeX\tex\latex\graphics\mathcolor.ltx
+INPUT C:\Users\Maxlo\AppData\Local\Programs\MiKTeX\tex\latex\graphics\mathcolor.ltx
+INPUT C:\Users\Maxlo\AppData\Local\Programs\MiKTeX\tex\latex\graphics\mathcolor.ltx
 INPUT C:\Users\Maxlo\AppData\Local\Programs\MiKTeX\tex\latex\l3backend\l3backend-pdftex.def
 INPUT C:\Users\Maxlo\AppData\Local\Programs\MiKTeX\tex\latex\l3backend\l3backend-pdftex.def
-INPUT c:\astro\Codigos practica + docs + papers\informe_practica\build\main.aux
-INPUT c:\astro\Codigos practica + docs + papers\informe_practica\build\main.aux
-INPUT c:\astro\Codigos practica + docs + papers\informe_practica\build\main.aux
 OUTPUT c:\astro\Codigos practica + docs + papers\informe_practica\build\main.aux
+INPUT C:\Users\Maxlo\AppData\Local\Programs\MiKTeX\tex\latex\translations\dicts\translations-basic-dictionary-spanish.trsl
+INPUT C:\Users\Maxlo\AppData\Local\Programs\MiKTeX\tex\latex\translations\dicts\translations-basic-dictionary-spanish.trsl
+INPUT C:\Users\Maxlo\AppData\Local\Programs\MiKTeX\tex\latex\translations\dicts\translations-basic-dictionary-spanish.trsl
 INPUT C:\Users\Maxlo\AppData\Local\Programs\MiKTeX\tex\context\base\mkii\supp-pdf.mkii
 INPUT C:\Users\Maxlo\AppData\Local\Programs\MiKTeX\tex\context\base\mkii\supp-pdf.mkii
 INPUT C:\Users\Maxlo\AppData\Local\Programs\MiKTeX\tex\context\base\mkii\supp-pdf.mkii
@@ -140,25 +154,39 @@ INPUT C:\Users\Maxlo\AppData\Local\Programs\MiKTeX\tex\latex\epstopdf-pkg\epstop
 INPUT C:\Users\Maxlo\AppData\Local\Programs\MiKTeX\tex\latex\00miktex\epstopdf-sys.cfg
 INPUT C:\Users\Maxlo\AppData\Local\Programs\MiKTeX\tex\latex\00miktex\epstopdf-sys.cfg
 INPUT C:\Users\Maxlo\AppData\Local\Programs\MiKTeX\tex\latex\00miktex\epstopdf-sys.cfg
-INPUT C:\Users\Maxlo\AppData\Local\Programs\MiKTeX\tex\latex\graphics\color.sty
-INPUT C:\Users\Maxlo\AppData\Local\Programs\MiKTeX\tex\latex\graphics\color.sty
-INPUT C:\Users\Maxlo\AppData\Local\Programs\MiKTeX\tex\latex\graphics-cfg\color.cfg
-INPUT C:\Users\Maxlo\AppData\Local\Programs\MiKTeX\tex\latex\graphics-cfg\color.cfg
-INPUT C:\Users\Maxlo\AppData\Local\Programs\MiKTeX\tex\latex\graphics-cfg\color.cfg
-INPUT C:\Users\Maxlo\AppData\Local\Programs\MiKTeX\tex\latex\graphics\mathcolor.ltx
-INPUT C:\Users\Maxlo\AppData\Local\Programs\MiKTeX\tex\latex\graphics\mathcolor.ltx
-INPUT C:\Users\Maxlo\AppData\Local\Programs\MiKTeX\tex\latex\graphics\mathcolor.ltx
 OUTPUT c:\astro\Codigos practica + docs + papers\informe_practica\build\main.out
 OUTPUT c:\astro\Codigos practica + docs + papers\informe_practica\build\main.pdf
-INPUT C:\Users\Maxlo\AppData\Local\Programs\MiKTeX\fonts\tfm\jknappen\ec\eccc1200.tfm
+INPUT .\styles\portada.tex
+INPUT .\styles\portada.tex
+INPUT styles\portada.tex
+INPUT .\figures\logo uc\UC C.GRAY11-03.jpg
+INPUT .\figures\logo uc\UC C.GRAY11-03.jpg
+INPUT .\figures\logo uc\UC C.GRAY11-03.jpg
+INPUT .\figures\logo uc\UC C.GRAY11-03.jpg
+INPUT .\figures\logo uc\UC C.GRAY11-03.jpg
+INPUT .\figures\logo uc\UC C.GRAY11-03.jpg
+INPUT .\figures\logo uc\UC C.GRAY11-03.jpg
+INPUT C:\Users\Maxlo\AppData\Local\Programs\MiKTeX\fonts\tfm\jknappen\ec\ecrm2074.tfm
 INPUT C:\Users\Maxlo\AppData\Local\Programs\MiKTeX\fonts\tfm\jknappen\ec\eccc2074.tfm
 INPUT C:\Users\Maxlo\AppData\Local\Programs\MiKTeX\fonts\tfm\jknappen\ec\ecrm1728.tfm
-INPUT C:\Users\Maxlo\AppData\Local\Programs\MiKTeX\fonts\tfm\jknappen\ec\ecrm2488.tfm
-INPUT C:\Users\Maxlo\AppData\Local\Programs\MiKTeX\fonts\tfm\jknappen\ec\ecbx2488.tfm
-INPUT C:\Users\Maxlo\AppData\Local\Programs\MiKTeX\fonts\tfm\jknappen\ec\ecti1728.tfm
 INPUT C:\Users\Maxlo\AppData\Local\Programs\MiKTeX\fonts\tfm\jknappen\ec\ecrm1440.tfm
+INPUT C:\Users\Maxlo\AppData\Local\Programs\MiKTeX\fonts\tfm\jknappen\ec\ecbx2074.tfm
 INPUT C:\Users\Maxlo\AppData\Local\Programs\MiKTeX\fonts\tfm\jknappen\ec\ecti1440.tfm
 INPUT C:\Users\Maxlo\AppData\Local\Programs\MiKTeX\fonts\tfm\jknappen\ec\ecbx1440.tfm
+INPUT C:\Users\Maxlo\AppData\Local\MiKTeX\fonts\map\pdftex\pdftex.map
+INPUT .\chapters\00_agradecimientos.tex
+INPUT .\chapters\00_agradecimientos.tex
+INPUT chapters\00_agradecimientos.tex
+INPUT C:\Users\Maxlo\AppData\Local\Programs\MiKTeX\fonts\tfm\jknappen\ec\ecbx1200.tfm
+INPUT C:\Users\Maxlo\AppData\Local\Programs\MiKTeX\fonts\tfm\jknappen\ec\ecbx2488.tfm
+INPUT C:\Users\Maxlo\AppData\Local\Programs\MiKTeX\fonts\tfm\jknappen\ec\eccc1200.tfm
+OUTPUT c:\astro\Codigos practica + docs + papers\informe_practica\build\main.toc
+INPUT .\chapters\00_abstract.tex
+INPUT .\chapters\00_abstract.tex
+INPUT .\chapters\00_abstract.tex
+INPUT .\chapters\00_abstract.tex
+INPUT chapters\00_abstract.tex
+INPUT C:\Users\Maxlo\AppData\Local\Programs\MiKTeX\fonts\tfm\jknappen\ec\ecti1200.tfm
 INPUT C:\Users\Maxlo\AppData\Local\Programs\MiKTeX\fonts\tfm\public\cm\cmr8.tfm
 INPUT C:\Users\Maxlo\AppData\Local\Programs\MiKTeX\fonts\tfm\public\cm\cmr6.tfm
 INPUT C:\Users\Maxlo\AppData\Local\Programs\MiKTeX\fonts\tfm\public\cm\cmmi12.tfm
@@ -182,13 +210,28 @@ INPUT C:\Users\Maxlo\AppData\Local\Programs\MiKTeX\tex\latex\amsfonts\umsb.fd
 INPUT C:\Users\Maxlo\AppData\Local\Programs\MiKTeX\fonts\tfm\public\amsfonts\symbols\msbm10.tfm
 INPUT C:\Users\Maxlo\AppData\Local\Programs\MiKTeX\fonts\tfm\public\amsfonts\symbols\msbm10.tfm
 INPUT C:\Users\Maxlo\AppData\Local\Programs\MiKTeX\fonts\tfm\public\amsfonts\symbols\msbm7.tfm
-INPUT C:\Users\Maxlo\AppData\Local\MiKTeX\fonts\map\pdftex\pdftex.map
-INPUT C:\Users\Maxlo\AppData\Local\Programs\MiKTeX\fonts\tfm\jknappen\ec\ecbx1200.tfm
-OUTPUT c:\astro\Codigos practica + docs + papers\informe_practica\build\main.toc
-OUTPUT c:\astro\Codigos practica + docs + papers\informe_practica\build\main.lof
+INPUT .\chapters\01_introduccion.tex
+INPUT .\chapters\01_introduccion.tex
+INPUT chapters\01_introduccion.tex
 INPUT C:\Users\Maxlo\AppData\Local\Programs\MiKTeX\fonts\tfm\jknappen\ec\ecbx1728.tfm
-INPUT C:\Users\Maxlo\AppData\Local\Programs\MiKTeX\fonts\tfm\jknappen\ec\ecti1200.tfm
+INPUT .\figures\HL tauri.jpg
+INPUT .\figures\HL tauri.jpg
+INPUT .\figures\HL tauri.jpg
+INPUT .\figures\HL tauri.jpg
+INPUT .\figures\HL tauri.jpg
+INPUT .\figures\HL tauri.jpg
+INPUT .\figures\HL tauri.jpg
 INPUT C:\Users\Maxlo\AppData\Local\Programs\MiKTeX\fonts\tfm\jknappen\ec\ecrm1095.tfm
+INPUT .\chapters\02_marco_teorico.tex
+INPUT .\chapters\02_marco_teorico.tex
+INPUT chapters\02_marco_teorico.tex
+INPUT .\chapters\03_metodologia.tex
+INPUT .\chapters\03_metodologia.tex
+INPUT chapters\03_metodologia.tex
+INPUT C:\Users\Maxlo\AppData\Local\Programs\MiKTeX\fonts\tfm\jknappen\ec\ectt1200.tfm
+INPUT .\tables\parametros.tex
+INPUT .\tables\parametros.tex
+INPUT tables\parametros.tex
 INPUT C:\Users\Maxlo\AppData\Local\Programs\MiKTeX\fonts\tfm\public\cm\cmr10.tfm
 INPUT C:\Users\Maxlo\AppData\Local\Programs\MiKTeX\fonts\tfm\public\cm\cmmi10.tfm
 INPUT C:\Users\Maxlo\AppData\Local\Programs\MiKTeX\fonts\tfm\public\cm\cmsy10.tfm
@@ -196,42 +239,156 @@ INPUT C:\Users\Maxlo\AppData\Local\Programs\MiKTeX\fonts\tfm\public\cm\cmex10.tf
 INPUT C:\Users\Maxlo\AppData\Local\Programs\MiKTeX\fonts\tfm\public\amsfonts\symbols\msam10.tfm
 INPUT C:\Users\Maxlo\AppData\Local\Programs\MiKTeX\fonts\tfm\public\amsfonts\symbols\msbm10.tfm
 INPUT C:\Users\Maxlo\AppData\Local\Programs\MiKTeX\fonts\tfm\jknappen\ec\ecti1095.tfm
-INPUT C:\Users\Maxlo\AppData\Local\Programs\MiKTeX\fonts\tfm\jknappen\ec\ecrm0600.tfm
+INPUT .\figures\duffell_effect_panel.pdf
+INPUT .\figures\duffell_effect_panel.pdf
+INPUT .\figures\duffell_effect_panel.pdf
+INPUT .\figures\duffell_effect_panel.pdf
+INPUT .\figures\duffell_effect_panel.pdf
+INPUT .\figures\duffell_effect_panel.pdf
+INPUT C:\Users\Maxlo\AppData\Local\Programs\MiKTeX\fonts\tfm\jknappen\ec\ecbx1095.tfm
 INPUT C:\Users\Maxlo\AppData\Local\Programs\MiKTeX\fonts\tfm\jknappen\ec\ecrm0800.tfm
+INPUT C:\Users\Maxlo\AppData\Local\Programs\MiKTeX\fonts\tfm\jknappen\ec\ecrm0600.tfm
+INPUT .\figures\hartmann_mdot_gradient.pdf
+INPUT .\figures\hartmann_mdot_gradient.pdf
+INPUT .\figures\hartmann_mdot_gradient.pdf
+INPUT .\figures\hartmann_mdot_gradient.pdf
+INPUT .\figures\hartmann_mdot_gradient.pdf
+INPUT .\figures\hartmann_mdot_gradient.pdf
+INPUT .\figures\dynamic_snowline_oka_interpolation.pdf
+INPUT .\figures\dynamic_snowline_oka_interpolation.pdf
+INPUT .\figures\dynamic_snowline_oka_interpolation.pdf
+INPUT .\figures\dynamic_snowline_oka_interpolation.pdf
+INPUT .\figures\dynamic_snowline_oka_interpolation.pdf
+INPUT .\figures\dynamic_snowline_oka_interpolation.pdf
+INPUT C:\Users\Maxlo\AppData\Local\Programs\MiKTeX\fonts\tfm\jknappen\ec\ectt1728.tfm
+INPUT C:\Users\Maxlo\AppData\Local\Programs\MiKTeX\fonts\tfm\jknappen\ec\ecrm1000.tfm
+INPUT C:\Users\Maxlo\AppData\Local\Programs\MiKTeX\fonts\tfm\public\amsfonts\cmextra\cmex7.tfm
+INPUT C:\Users\Maxlo\AppData\Local\Programs\MiKTeX\fonts\tfm\public\amsfonts\cmextra\cmex7.tfm
+INPUT C:\Users\Maxlo\AppData\Local\Programs\MiKTeX\fonts\tfm\public\amsfonts\symbols\msam10.tfm
+INPUT C:\Users\Maxlo\AppData\Local\Programs\MiKTeX\fonts\tfm\public\amsfonts\symbols\msam7.tfm
+INPUT C:\Users\Maxlo\AppData\Local\Programs\MiKTeX\fonts\tfm\public\amsfonts\symbols\msam5.tfm
+INPUT C:\Users\Maxlo\AppData\Local\Programs\MiKTeX\fonts\tfm\public\amsfonts\symbols\msbm10.tfm
+INPUT C:\Users\Maxlo\AppData\Local\Programs\MiKTeX\fonts\tfm\public\amsfonts\symbols\msbm7.tfm
+INPUT C:\Users\Maxlo\AppData\Local\Programs\MiKTeX\fonts\tfm\public\amsfonts\symbols\msbm5.tfm
+INPUT C:\Users\Maxlo\AppData\Local\Programs\MiKTeX\fonts\tfm\jknappen\ec\ecrm0700.tfm
+INPUT C:\Users\Maxlo\AppData\Local\Programs\MiKTeX\fonts\tfm\jknappen\ec\ectt1000.tfm
+INPUT .\chapters\04_resultados.tex
+INPUT .\chapters\04_resultados.tex
+INPUT chapters\04_resultados.tex
+INPUT .\figures\4_fig_resultados\figura1_vfrags.png
+INPUT .\figures\4_fig_resultados\figura1_vfrags.png
+INPUT .\figures\4_fig_resultados\figura1_vfrags.png
+INPUT .\figures\4_fig_resultados\figura1_vfrags.png
+INPUT .\figures\4_fig_resultados\figura1_vfrags.png
+INPUT .\figures\4_fig_resultados\figura1_vfrags.png
+INPUT .\figures\4_fig_resultados\figura1_vfrags.png
+INPUT .\figures\4_fig_resultados\figura2_masas.png
+INPUT .\figures\4_fig_resultados\figura2_masas.png
+INPUT .\figures\4_fig_resultados\figura2_masas.png
+INPUT .\figures\4_fig_resultados\figura2_masas.png
+INPUT .\figures\4_fig_resultados\figura2_masas.png
+INPUT .\figures\4_fig_resultados\figura2_masas.png
+INPUT .\figures\4_fig_resultados\figura2_masas.png
+INPUT .\figures\4_fig_resultados\figura3_turbulencia.png
+INPUT .\figures\4_fig_resultados\figura3_turbulencia.png
+INPUT .\figures\4_fig_resultados\figura3_turbulencia.png
+INPUT .\figures\4_fig_resultados\figura3_turbulencia.png
+INPUT .\figures\4_fig_resultados\figura3_turbulencia.png
+INPUT .\figures\4_fig_resultados\figura3_turbulencia.png
+INPUT .\figures\4_fig_resultados\figura3_turbulencia.png
+INPUT .\figures\4_fig_resultados\figura_A3_gap_sinusoidal.png
+INPUT .\figures\4_fig_resultados\figura_A3_gap_sinusoidal.png
+INPUT .\figures\4_fig_resultados\figura_A3_gap_sinusoidal.png
+INPUT .\figures\4_fig_resultados\figura_A3_gap_sinusoidal.png
+INPUT .\figures\4_fig_resultados\figura_A3_gap_sinusoidal.png
+INPUT .\figures\4_fig_resultados\figura_A3_gap_sinusoidal.png
+INPUT .\figures\4_fig_resultados\figura_A3_gap_sinusoidal.png
+INPUT .\figures\4_fig_resultados\figura_B_regimenes_mgap.png
+INPUT .\figures\4_fig_resultados\figura_B_regimenes_mgap.png
+INPUT .\figures\4_fig_resultados\figura_B_regimenes_mgap.png
+INPUT .\figures\4_fig_resultados\figura_B_regimenes_mgap.png
+INPUT .\figures\4_fig_resultados\figura_B_regimenes_mgap.png
+INPUT .\figures\4_fig_resultados\figura_B_regimenes_mgap.png
+INPUT .\figures\4_fig_resultados\figura_B_regimenes_mgap.png
+INPUT .\figures\4.2_resultados\resultados_delayed_1x1_markers.png
+INPUT .\figures\4.2_resultados\resultados_delayed_1x1_markers.png
+INPUT .\figures\4.2_resultados\resultados_delayed_1x1_markers.png
+INPUT .\figures\4.2_resultados\resultados_delayed_1x1_markers.png
+INPUT .\figures\4.2_resultados\resultados_delayed_1x1_markers.png
+INPUT .\figures\4.2_resultados\resultados_delayed_1x1_markers.png
+INPUT .\figures\4.2_resultados\resultados_delayed_1x1_markers.png
+INPUT .\figures\4.2_resultados\resultados_bubble.png
+INPUT .\figures\4.2_resultados\resultados_bubble.png
+INPUT .\figures\4.2_resultados\resultados_bubble.png
+INPUT .\figures\4.2_resultados\resultados_bubble.png
+INPUT .\figures\4.2_resultados\resultados_bubble.png
+INPUT .\figures\4.2_resultados\resultados_bubble.png
+INPUT .\figures\4.2_resultados\resultados_bubble.png
+INPUT .\figures\4.2_resultados\figura_C_facet_combinado_lineal.png
+INPUT .\figures\4.2_resultados\figura_C_facet_combinado_lineal.png
+INPUT .\figures\4.2_resultados\figura_C_facet_combinado_lineal.png
+INPUT .\figures\4.2_resultados\figura_C_facet_combinado_lineal.png
+INPUT .\figures\4.2_resultados\figura_C_facet_combinado_lineal.png
+INPUT .\figures\4.2_resultados\figura_C_facet_combinado_lineal.png
+INPUT .\figures\4.2_resultados\figura_C_facet_combinado_lineal.png
+INPUT .\figures\4.2_resultados\figura_C_facet_combinado_log_10pct.png
+INPUT .\figures\4.2_resultados\figura_C_facet_combinado_log_10pct.png
+INPUT .\figures\4.2_resultados\figura_C_facet_combinado_log_10pct.png
+INPUT .\figures\4.2_resultados\figura_C_facet_combinado_log_10pct.png
+INPUT .\figures\4.2_resultados\figura_C_facet_combinado_log_10pct.png
+INPUT .\figures\4.2_resultados\figura_C_facet_combinado_log_10pct.png
+INPUT .\figures\4.2_resultados\figura_C_facet_combinado_log_10pct.png
+INPUT .\chapters\05_discusion.tex
+INPUT .\chapters\05_discusion.tex
+INPUT chapters\05_discusion.tex
+INPUT .\chapters\06_conclusiones.tex
+INPUT .\chapters\06_conclusiones.tex
+INPUT chapters\06_conclusiones.tex
 INPUT c:\astro\Codigos practica + docs + papers\informe_practica\build\main.bbl
 INPUT c:\astro\Codigos practica + docs + papers\informe_practica\build\main.bbl
 INPUT c:\astro\Codigos practica + docs + papers\informe_practica\build\main.bbl
+INPUT C:\Users\Maxlo\AppData\Local\Programs\MiKTeX\fonts\tfm\jknappen\ec\ecbx1000.tfm
 INPUT c:\astro\Codigos practica + docs + papers\informe_practica\build\main.aux
 INPUT c:\astro\Codigos practica + docs + papers\informe_practica\build\main.out
 INPUT c:\astro\Codigos practica + docs + papers\informe_practica\build\main.out
-INPUT C:\Users\Maxlo\AppData\Local\MiKTeX\fonts\pk\ljfour\jknappen\ec\dpi600\ecti1095.pk
-INPUT C:\Users\Maxlo\AppData\Local\MiKTeX\fonts\pk\ljfour\jknappen\ec\dpi600\ecti1095.pk
-INPUT C:\Users\Maxlo\AppData\Local\MiKTeX\fonts\pk\ljfour\jknappen\ec\dpi600\ecrm1095.pk
-INPUT C:\Users\Maxlo\AppData\Local\MiKTeX\fonts\pk\ljfour\jknappen\ec\dpi600\ecrm1095.pk
+INPUT C:\Users\Maxlo\AppData\Local\MiKTeX\fonts\pk\ljfour\jknappen\ec\dpi600\ectt1000.pk
+INPUT C:\Users\Maxlo\AppData\Local\MiKTeX\fonts\pk\ljfour\jknappen\ec\dpi600\ectt1000.pk
+INPUT C:\Users\Maxlo\AppData\Local\MiKTeX\fonts\pk\ljfour\jknappen\ec\dpi600\ecrm1000.pk
+INPUT C:\Users\Maxlo\AppData\Local\MiKTeX\fonts\pk\ljfour\jknappen\ec\dpi600\ecrm1000.pk
+INPUT C:\Users\Maxlo\AppData\Local\MiKTeX\fonts\pk\ljfour\jknappen\ec\dpi600\ecrm0700.pk
+INPUT C:\Users\Maxlo\AppData\Local\MiKTeX\fonts\pk\ljfour\jknappen\ec\dpi600\ecrm0700.pk
+INPUT C:\Users\Maxlo\AppData\Local\MiKTeX\fonts\pk\ljfour\jknappen\ec\dpi600\ectt1728.pk
+INPUT C:\Users\Maxlo\AppData\Local\MiKTeX\fonts\pk\ljfour\jknappen\ec\dpi600\ectt1728.pk
 INPUT C:\Users\Maxlo\AppData\Local\MiKTeX\fonts\pk\ljfour\jknappen\ec\dpi600\ecrm0800.pk
 INPUT C:\Users\Maxlo\AppData\Local\MiKTeX\fonts\pk\ljfour\jknappen\ec\dpi600\ecrm0800.pk
-INPUT C:\Users\Maxlo\AppData\Local\MiKTeX\fonts\pk\ljfour\jknappen\ec\dpi600\ecrm0600.pk
-INPUT C:\Users\Maxlo\AppData\Local\MiKTeX\fonts\pk\ljfour\jknappen\ec\dpi600\ecrm0600.pk
-INPUT C:\Users\Maxlo\AppData\Local\MiKTeX\fonts\pk\ljfour\jknappen\ec\dpi600\ecti1200.pk
-INPUT C:\Users\Maxlo\AppData\Local\MiKTeX\fonts\pk\ljfour\jknappen\ec\dpi600\ecti1200.pk
+INPUT C:\Users\Maxlo\AppData\Local\MiKTeX\fonts\pk\ljfour\jknappen\ec\dpi600\ecbx1095.pk
+INPUT C:\Users\Maxlo\AppData\Local\MiKTeX\fonts\pk\ljfour\jknappen\ec\dpi600\ecbx1095.pk
+INPUT C:\Users\Maxlo\AppData\Local\MiKTeX\fonts\pk\ljfour\jknappen\ec\dpi600\ecti1095.pk
+INPUT C:\Users\Maxlo\AppData\Local\MiKTeX\fonts\pk\ljfour\jknappen\ec\dpi600\ecti1095.pk
+INPUT C:\Users\Maxlo\AppData\Local\MiKTeX\fonts\pk\ljfour\jknappen\ec\dpi600\ectt1200.pk
+INPUT C:\Users\Maxlo\AppData\Local\MiKTeX\fonts\pk\ljfour\jknappen\ec\dpi600\ectt1200.pk
+INPUT C:\Users\Maxlo\AppData\Local\MiKTeX\fonts\pk\ljfour\jknappen\ec\dpi600\ecrm1095.pk
+INPUT C:\Users\Maxlo\AppData\Local\MiKTeX\fonts\pk\ljfour\jknappen\ec\dpi600\ecrm1095.pk
 INPUT C:\Users\Maxlo\AppData\Local\MiKTeX\fonts\pk\ljfour\jknappen\ec\dpi600\ecbx1200.pk
 INPUT C:\Users\Maxlo\AppData\Local\MiKTeX\fonts\pk\ljfour\jknappen\ec\dpi600\ecbx1200.pk
-INPUT C:\Users\Maxlo\AppData\Local\MiKTeX\fonts\pk\ljfour\jknappen\ec\dpi600\ecrm1200.pk
-INPUT C:\Users\Maxlo\AppData\Local\MiKTeX\fonts\pk\ljfour\jknappen\ec\dpi600\ecrm1200.pk
 INPUT C:\Users\Maxlo\AppData\Local\MiKTeX\fonts\pk\ljfour\jknappen\ec\dpi600\ecbx1728.pk
 INPUT C:\Users\Maxlo\AppData\Local\MiKTeX\fonts\pk\ljfour\jknappen\ec\dpi600\ecbx1728.pk
+INPUT C:\Users\Maxlo\AppData\Local\MiKTeX\fonts\pk\ljfour\jknappen\ec\dpi600\ecti1200.pk
+INPUT C:\Users\Maxlo\AppData\Local\MiKTeX\fonts\pk\ljfour\jknappen\ec\dpi600\ecti1200.pk
 INPUT C:\Users\Maxlo\AppData\Local\MiKTeX\fonts\pk\ljfour\jknappen\ec\dpi600\eccc1200.pk
 INPUT C:\Users\Maxlo\AppData\Local\MiKTeX\fonts\pk\ljfour\jknappen\ec\dpi600\eccc1200.pk
-INPUT C:\Users\Maxlo\AppData\Local\MiKTeX\fonts\pk\ljfour\jknappen\ec\dpi600\ecrm1440.pk
-INPUT C:\Users\Maxlo\AppData\Local\MiKTeX\fonts\pk\ljfour\jknappen\ec\dpi600\ecrm1440.pk
+INPUT C:\Users\Maxlo\AppData\Local\MiKTeX\fonts\pk\ljfour\jknappen\ec\dpi600\ecrm1200.pk
+INPUT C:\Users\Maxlo\AppData\Local\MiKTeX\fonts\pk\ljfour\jknappen\ec\dpi600\ecrm1200.pk
+INPUT C:\Users\Maxlo\AppData\Local\MiKTeX\fonts\pk\ljfour\jknappen\ec\dpi600\ecbx2488.pk
+INPUT C:\Users\Maxlo\AppData\Local\MiKTeX\fonts\pk\ljfour\jknappen\ec\dpi600\ecbx2488.pk
 INPUT C:\Users\Maxlo\AppData\Local\MiKTeX\fonts\pk\ljfour\jknappen\ec\dpi600\ecbx1440.pk
 INPUT C:\Users\Maxlo\AppData\Local\MiKTeX\fonts\pk\ljfour\jknappen\ec\dpi600\ecbx1440.pk
 INPUT C:\Users\Maxlo\AppData\Local\MiKTeX\fonts\pk\ljfour\jknappen\ec\dpi600\ecti1440.pk
 INPUT C:\Users\Maxlo\AppData\Local\MiKTeX\fonts\pk\ljfour\jknappen\ec\dpi600\ecti1440.pk
-INPUT C:\Users\Maxlo\AppData\Local\MiKTeX\fonts\pk\ljfour\jknappen\ec\dpi600\ecti1728.pk
-INPUT C:\Users\Maxlo\AppData\Local\MiKTeX\fonts\pk\ljfour\jknappen\ec\dpi600\ecti1728.pk
-INPUT C:\Users\Maxlo\AppData\Local\MiKTeX\fonts\pk\ljfour\jknappen\ec\dpi600\ecbx2488.pk
-INPUT C:\Users\Maxlo\AppData\Local\MiKTeX\fonts\pk\ljfour\jknappen\ec\dpi600\ecbx2488.pk
+INPUT C:\Users\Maxlo\AppData\Local\MiKTeX\fonts\pk\ljfour\jknappen\ec\dpi600\ecbx2074.pk
+INPUT C:\Users\Maxlo\AppData\Local\MiKTeX\fonts\pk\ljfour\jknappen\ec\dpi600\ecbx2074.pk
+INPUT C:\Users\Maxlo\AppData\Local\MiKTeX\fonts\pk\ljfour\jknappen\ec\dpi600\ecrm1440.pk
+INPUT C:\Users\Maxlo\AppData\Local\MiKTeX\fonts\pk\ljfour\jknappen\ec\dpi600\ecrm1440.pk
 INPUT C:\Users\Maxlo\AppData\Local\MiKTeX\fonts\pk\ljfour\jknappen\ec\dpi600\ecrm1728.pk
 INPUT C:\Users\Maxlo\AppData\Local\MiKTeX\fonts\pk\ljfour\jknappen\ec\dpi600\ecrm1728.pk
 INPUT C:\Users\Maxlo\AppData\Local\MiKTeX\fonts\pk\ljfour\jknappen\ec\dpi600\eccc2074.pk
@@ -242,14 +399,16 @@ INPUT C:\Users\Maxlo\AppData\Local\Programs\MiKTeX\fonts\type1\public\amsfonts\c
 INPUT C:\Users\Maxlo\AppData\Local\Programs\MiKTeX\fonts\type1\public\amsfonts\cm\cmmi10.pfb
 INPUT C:\Users\Maxlo\AppData\Local\Programs\MiKTeX\fonts\type1\public\amsfonts\cm\cmmi12.pfb
 INPUT C:\Users\Maxlo\AppData\Local\Programs\MiKTeX\fonts\type1\public\amsfonts\cm\cmmi12.pfb
+INPUT C:\Users\Maxlo\AppData\Local\Programs\MiKTeX\fonts\type1\public\amsfonts\cm\cmmi7.pfb
+INPUT C:\Users\Maxlo\AppData\Local\Programs\MiKTeX\fonts\type1\public\amsfonts\cm\cmmi7.pfb
 INPUT C:\Users\Maxlo\AppData\Local\Programs\MiKTeX\fonts\type1\public\amsfonts\cm\cmmi8.pfb
 INPUT C:\Users\Maxlo\AppData\Local\Programs\MiKTeX\fonts\type1\public\amsfonts\cm\cmmi8.pfb
 INPUT C:\Users\Maxlo\AppData\Local\Programs\MiKTeX\fonts\type1\public\amsfonts\cm\cmr10.pfb
 INPUT C:\Users\Maxlo\AppData\Local\Programs\MiKTeX\fonts\type1\public\amsfonts\cm\cmr10.pfb
 INPUT C:\Users\Maxlo\AppData\Local\Programs\MiKTeX\fonts\type1\public\amsfonts\cm\cmr12.pfb
 INPUT C:\Users\Maxlo\AppData\Local\Programs\MiKTeX\fonts\type1\public\amsfonts\cm\cmr12.pfb
-INPUT C:\Users\Maxlo\AppData\Local\Programs\MiKTeX\fonts\type1\public\amsfonts\cm\cmr6.pfb
-INPUT C:\Users\Maxlo\AppData\Local\Programs\MiKTeX\fonts\type1\public\amsfonts\cm\cmr6.pfb
+INPUT C:\Users\Maxlo\AppData\Local\Programs\MiKTeX\fonts\type1\public\amsfonts\cm\cmr7.pfb
+INPUT C:\Users\Maxlo\AppData\Local\Programs\MiKTeX\fonts\type1\public\amsfonts\cm\cmr7.pfb
 INPUT C:\Users\Maxlo\AppData\Local\Programs\MiKTeX\fonts\type1\public\amsfonts\cm\cmr8.pfb
 INPUT C:\Users\Maxlo\AppData\Local\Programs\MiKTeX\fonts\type1\public\amsfonts\cm\cmr8.pfb
 INPUT C:\Users\Maxlo\AppData\Local\Programs\MiKTeX\fonts\type1\public\amsfonts\cm\cmsy10.pfb

@@ -1,0 +1,73 @@
+% =========================================================
+% CONCLUSIONES
+% =========================================================
+
+\chapter{Conclusiones}
+\label{cap:conclusiones}
+
+%=========================================================
+\section{Síntesis de Resultados y Aportes Principales}
+%=========================================================
+
+Este trabajo abordó la pregunta central planteada en la Sección 1.6: ¿cómo modifican las subestructuras de un disco protoplanetario el crecimiento y la composición de planetas terrestres mediante acreción de \textit{pebbles}? Los resultados obtenidos muestran que las subestructuras no sólo alteran la cantidad de sólidos disponibles para la acreción, sino también el momento en que éstos alcanzan al embrión. Como consecuencia, la evolución temporal del flujo de \textit{pebbles} emerge como el mecanismo físico que controla simultáneamente el crecimiento planetario y el contenido final de agua.
+
+El análisis de 5006 trayectorias evolutivas permitió identificar tendencias robustas en función de la turbulencia del disco, la profundidad de las trampas de presión y las propiedades de fragmentación del polvo. En conjunto, los resultados muestran que la interacción entre la evolución térmica del disco y las subestructuras genera una amplia diversidad de trayectorias evolutivas, estableciendo una conexión directa entre la dinámica del disco protoplanetario y las propiedades finales de los planetas formados.
+
+Los principales aportes de este trabajo pueden resumirse en los siguientes puntos:
+
+\begin{enumerate}
+    \item Se desarrolló un marco de trabajo que acopla la evolución del polvo calculada con TriPoDPy y la acreción planetaria mediante PA3Py, permitiendo estudiar de forma eficiente la formación de planetas terrestres en discos con subestructuras.
+
+    \item Se implementó una evolución temporal parametrizada de la \textit{snowline}, basada en el decaimiento de la tasa de acreción estelar y en modelos analíticos de estructura térmica del disco, incorporando el transporte temporal de volátiles durante la formación planetaria.
+
+    \item Se identificó una \textit{Isla de Crecimiento}, delimitando el régimen de parámetros donde la formación planetaria resulta más eficiente, caracterizado por turbulencias moderadas o bajas ($\alpha \lesssim 10^{-3}$) y trampas de presión de profundidad intermedia ($M_{\rm gap}\sim0.05-0.1\,M_{\rm Jup}$).
+
+    \item Se mostró que la regulación temporal del flujo de \textit{pebbles} constituye el mecanismo físico que vincula el crecimiento planetario con la composición final de los planetas, generando una correlación entre masa y contenido de agua que surge de una cronología común y no de una relación causal directa entre ambas propiedades.
+
+    \item Se encontró que, dentro de las arquitecturas exploradas, la profundidad de las trampas de presión ejerce un control significativamente mayor sobre el crecimiento y la composición planetaria que el número de subestructuras presentes en el disco, indicando que la eficiencia del atrapamiento resulta más importante que la complejidad de la arquitectura.
+
+    \item Se identificó una población de planetas masivos pero pobres en agua bajo condiciones de muy baja turbulencia, evidenciando que pequeñas diferencias en la cronología del suministro de \textit{pebbles} pueden conducir a composiciones planetarias radicalmente distintas.
+\end{enumerate}
+
+%=========================================================
+\section{La Regulación Temporal del Flujo de Pebbles y la Isla de Crecimiento}
+%=========================================================
+
+El principal resultado físico de este trabajo es que el crecimiento planetario eficiente depende más de la distribución temporal del suministro de sólidos que de la cantidad total de material disponible. Las subestructuras transforman un flujo radial originalmente continuo en un suministro episódico, caracterizado por etapas de almacenamiento y liberación de \textit{pebbles} conforme evoluciona el disco.
+
+La denominada \textit{Isla de Crecimiento} constituye la manifestación cuantitativa de este mecanismo. Nuestros resultados muestran que existe un equilibrio óptimo entre retención y suministro de sólidos. Trampas demasiado débiles permiten que los \textit{pebbles} deriven rápidamente hacia la estrella, mientras que trampas excesivamente profundas reducen de forma significativa el flujo disponible para la acreción. Sólo un régimen intermedio permite mantener un suministro prolongado capaz de sostener el crecimiento de los embriones hasta masas significativas.
+
+La turbulencia desempeña un papel igualmente fundamental. Para valores elevados de $\alpha$, la difusión turbulenta incrementa la escala de altura del polvo y reduce la eficiencia de la acreción de \textit{pebbles}, mientras que en discos de baja turbulencia la sedimentación favorece una acreción más eficiente. En este contexto, la \textit{Isla de Crecimiento} representa el equilibrio entre el transporte radial de sólidos, la eficiencia del atrapamiento y la capacidad de los embriones para incorporarlos.
+
+Un resultado adicional es que, para las arquitecturas consideradas en este trabajo, la profundidad de las trampas de presión controla mucho más fuertemente el crecimiento planetario y el enriquecimiento en agua que el número de subestructuras presentes en el disco. Tanto los modelos con un único \textit{gap} como aquellos con múltiples anillos presentan distribuciones composicionales similares cuando comparten profundidades equivalentes, lo que indica que la capacidad de almacenar y liberar \textit{pebbles} constituye el parámetro dominante.
+
+%=========================================================
+\section{Cronología del Flujo de Pebbles y Enriquecimiento en Agua}
+%=========================================================
+
+Los resultados obtenidos muestran que el enriquecimiento en agua de los planetas interiores no depende únicamente de la migración de la \textit{snowline}, sino de la interacción entre ésta y las subestructuras del disco. Las trampas de presión almacenan temporalmente \textit{pebbles} ricos en hielo, los cuales son liberados cuando la evolución térmica modifica las propiedades de fragmentación del polvo. En este sentido, las subestructuras no reemplazan el mecanismo de \textit{pebble snow}, sino que modifican su eficiencia y el momento en que el material rico en volátiles alcanza las regiones internas del disco.
+
+La correlación observada entre la masa final de los planetas y su contenido de agua surge naturalmente de esta cronología. Los embriones cuyo crecimiento se prolonga hasta el episodio de liberación incorporan una fracción importante de material rico en hielo, mientras que aquellos que alcanzan tempranamente su masa de aislamiento conservan composiciones predominantemente rocosas. La población de planetas masivos pero secos identificada para $\alpha=10^{-4}$ constituye una evidencia indirecta de este mecanismo y demuestra que pequeñas variaciones en la cronología del crecimiento pueden generar trayectorias evolutivas y composiciones finales muy diferentes.
+
+En consecuencia, la composición planetaria no queda determinada únicamente por el inventario inicial de sólidos del disco, sino también por el momento en que éstos se encuentran disponibles para la acreción. Esta interacción entre evolución térmica, transporte radial y subestructuras proporciona un mecanismo físico capaz de explicar la diversidad composicional observada en sistemas planetarios.
+
+
+%========================================================= 
+\section{Implicancias para la Formación Planetaria} 
+%=========================================================
+
+Los resultados obtenidos sugieren que los discos protoplanetarios con subestructuras de profundidad intermedia ($M_{\rm gap}\sim0.05-0.1\,M_{\rm Jup}$) y bajos niveles de turbulencia ($\alpha\lesssim10^{-3}$) constituyen los entornos más favorables para la formación de planetas terrestres mediante acreción de \textit{pebbles}. Bajo estas condiciones, las trampas de presión regulan eficientemente el transporte radial de sólidos, permitiendo mantener un suministro prolongado que favorece tanto el crecimiento del embrión como su enriquecimiento en volátiles. Este resultado proporciona una predicción física que puede contrastarse con observaciones de discos protoplanetarios. Las propiedades observables de las subestructuras, como la profundidad de los \textit{gaps} o la concentración de polvo en los anillos, pueden utilizarse como indicadores indirectos de la eficiencia del transporte de sólidos y, por consiguiente, del potencial de formación planetaria del sistema. En este contexto, nuestros resultados sugieren que la eficiencia de una trampa de presión depende principalmente de su capacidad para modular el flujo de \textit{pebbles}, más que del número de subestructuras presentes en el disco. En conjunto, este trabajo refuerza la idea de que la evolución temporal del disco desempeña un papel tan importante como su estructura espacial. La formación planetaria no depende únicamente de la existencia de reservorios de sólidos, sino también de la forma en que éstos son transportados y liberados durante la evolución del disco protoplanetario.
+
+\section{Trabajo Futuro}
+%=========================================================
+
+Los resultados obtenidos en este trabajo abren diversas líneas de investigación orientadas a profundizar la relación entre la evolución del polvo y la formación planetaria.
+
+Una extensión natural consiste en implementar un acoplamiento dinámico entre TriPoDPy y PA3Py, permitiendo que la acreción planetaria modifique de manera auto-consistente la distribución superficial de pebbles. Este desarrollo permitirá estudiar la competencia por material sólido entre múltiples embriones y evaluar con mayor precisión la evolución conjunta del disco y los planetas en formación.
+
+Asimismo, resultará de interés incorporar una evolución térmica auto-consistente del disco, de modo que la posición de la \textit{snowline} responda directamente a la evolución de la estructura gaseosa y no a una parametrización externa. Esto permitirá estudiar con mayor detalle la sincronización entre la migración de la \textit{snowline}, la liberación de los reservorios de pebbles y el crecimiento planetario.
+
+Otra extensión relevante consiste en incluir un tratamiento químico más completo, considerando múltiples especies volátiles y sus respectivas líneas de condensación. Esto permitirá investigar no sólo la fracción de agua, sino también la evolución de relaciones elementales como C/O, ampliamente utilizadas para interpretar observaciones de atmósferas exoplanetarias.
+
+Finalmente, la incorporación de migración planetaria y la exploración de sistemas con múltiples embriones permitirán evaluar cómo la regulación temporal del flujo de pebbles interactúa con la evolución orbital de los planetas. Estos desarrollos contribuirán a construir un marco más completo para comprender de qué manera las subestructuras observadas en discos protoplanetarios condicionan tanto el crecimiento como la composición de los sistemas planetarios.
+

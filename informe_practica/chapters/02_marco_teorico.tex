@@ -1,0 +1,212 @@
+% =========================================================
+% MARCO TEÓRICO
+% =========================================================
+
+\chapter{Marco Teórico}
+\label{cap:marco_teorico}
+
+% ---------------------------------------------------------
+% Evolución del polvo
+% ---------------------------------------------------------
+% ---------------------------------------------------------
+% Evolución de Polvo en Discos Protoplanetarios
+% ---------------------------------------------------------
+\section{Evolución de Polvo en Discos Protoplanetarios}
+
+\invisiblesubsection{Crecimiento y Fragmentación}
+
+En el paradigma estándar de formación planetaria, los granos submicrométricos heredados del medio interestelar constituyen la materia prima a partir de la cual se forman los planetas. Durante las primeras etapas de evolución del disco protoplanetario, estas partículas crecen mediante colisiones a bajas velocidades relativas, dominadas por fuerzas de Van der Waals \citep{Dominik1997,Blum2018}. A medida que los agregados aumentan de tamaño, la turbulencia y las velocidades diferenciales incrementan la energía de las colisiones. Cuando esta supera la energía de cohesión del material, las colisiones dejan de producir crecimiento y pasan a estar dominadas por fragmentación. Este proceso establece un tamaño máximo para las partículas sólidas, conocido como \textit{fragmentation barrier} \citep{Birnstiel2012, Blum2018, Drazkowska2023}, que puede aproximarse mediante
+
+\begin{equation}
+a_{\rm frag} \propto
+\frac{\Sigma_g}{\rho_s,\alpha}
+\frac{v_{\rm frag}^2}{c_s^2},
+\end{equation}
+
+donde $\Sigma_g$ es la densidad superficial del gas, $\rho_s$ la densidad interna de los sólidos, $\alpha$ el parámetro turbulento de \citet{Shakura_sunyaev_1973}, $c_s$ la velocidad local del sonido y $v_{\rm frag}$ la velocidad crítica de fragmentación. Esta última depende fuertemente de la composición del material, alcanzando valores del orden de $\sim10{\rm ms^{-1}}$ para partículas recubiertas por hielo \citep{Gundlach_2014} y de $\sim1{\rm ms^{-1}}$ para silicatos secos \citep{Blum2018, Musiolik_Grzegorz_Gerhard2019}. En consecuencia, materiales más resistentes y discos menos turbulentos favorecen la formación de pebbles de mayor tamaño.
+
+Además de estar limitados por fragmentación, los pebbles milimétricos y centimétricos experimentan una rápida deriva radial debido a su interacción aerodinámica con el gas. Este proceso da origen a la denominada \textit{drift barrier}, una de las principales dificultades que enfrentan los modelos clásicos de formación planetaria, ya que las partículas pueden migrar hacia la estrella central antes de incorporarse a cuerpos de mayor tamaño \citep{Laibe2012, Blum2018}.
+
+
+\invisiblesubsection{Número de Stokes y Acoplamiento Aerodinámico}
+
+ El grado de acoplamiento de una partícula con el flujo de gas se cuantifica a través del número de Stokes ($St$), definido como:
+\begin{equation}
+St = t_{\rm stop} \Omega_{\rm K}
+\end{equation}
+donde $t_{\rm stop}$ representa el tiempo de frenado aerodinámico y $\Omega_{\rm K}$ la frecuencia orbital Kepleriana local \citep{Weidenschilling1977, Birnstiel2012}.
+
+El régimen de Epstein aplica cuando el tamaño de la partícula satisface:
+\begin{equation}
+a \lesssim \frac{9}{4}\lambda_{\rm mfp}
+\end{equation}
+donde $\lambda_{\rm mfp}$ corresponde al camino libre medio de las moléculas del gas. Este régimen domina en gran parte de los discos protoplanetarios.
+
+Partículas muy pequeñas ($St \ll 1$) se encuentran fuertemente acopladas al gas, mientras que cuerpos masivos ($St \gg 1$) evolucionan de manera prácticamente Kepleriana. Los \textit{pebbles} ($St \sim 0.01 - 1$) se ubican en un régimen intermedio donde la interacción aerodinámica alcanza su máxima eficiencia.
+
+\invisiblesubsection{Altura de Escala del Polvo}
+
+La sedimentación de los sólidos hacia el plano medio del disco está determinada por el equilibrio entre la gravedad vertical del campo estelar y la difusión turbulenta. La altura de escala del gas viene dada por
+
+\begin{equation}
+H_g=\frac{c_s}{\Omega_{\rm K}},
+\end{equation}
+
+donde $c_s$ corresponde a la velocidad local del sonido y $\Omega_{\rm K}$ a la frecuencia angular Kepleriana \citep{Birnstiel2012, Ormel2017}. Esta cantidad caracteriza el espesor vertical del disco y determina la distribución de los sólidos alrededor del plano medio.
+
+Como resultado de la sedimentación, la altura de escala de la capa de pebbles es significativamente menor que la del gas \citep{Birnstiel2012, Ormel2017}:
+
+\begin{equation}
+H_{\rm peb} = H_g \sqrt{\frac{\alpha}{\alpha + St}}
+\end{equation}
+
+donde $\alpha$ es el parámetro de turbulencia y $St$ el número de Stokes de las partículas. Esta expresión muestra que partículas con valores elevados de $St$ sedimentan más eficientemente, formando una capa delgada y densa.
+
+La altura de escala de los pebbles determina además el régimen de acreción. Cuando el radio efectivo de captura del embrión satisface $b_{\rm col}\lesssim H_{\rm peb}$, el sistema opera en el régimen tridimensional (3D), mientras que para $b_{\rm col}\gtrsim H_{\rm peb}$ la acreción transita al régimen bidimensional (2D).
+
+
+\invisiblesubsection{Deriva Radial de Pebbles}
+
+El disco de gas posee soporte térmico generado por su gradiente de presión radial negativo. Como consecuencia, el gas orbita a velocidades ligeramente sub-Keplerianas:
+\begin{equation}
+v_{\rm gas} = v_{\rm K}(1-\eta)
+\end{equation}
+donde $\eta$ cuantifica la desviación respecto a la velocidad Kepleriana y puede expresarse como:
+\begin{equation}
+\eta = -\frac{1}{2}\left(\frac{c_s}{v_{\rm K}}\right)^2 \frac{\partial \ln P}{\partial \ln r}
+\end{equation}
+
+Dado que las partículas sólidas no sienten directamente el soporte de presión, tienden a moverse a velocidades Keplerianas y experimentan un \textit{headwind} continuo. Esta interacción extrae momento angular de los sólidos y produce migración radial hacia la estrella \citep{Birnstiel2012, Laibe2012}. La velocidad radial de deriva se aproxima mediante:
+\begin{equation}
+v_r = -\frac{2\eta v_{\rm K} St}{1+St^2}
+\end{equation}
+
+La deriva alcanza su máxima eficiencia para partículas marginalmente acopladas ($St \approx 1$). En muchos casos, esta migración radial limita el crecimiento antes de alcanzar el régimen de fragmentación. Bajo esta condición, el tamaño máximo impuesto por deriva radial se aproxima como:
+\begin{equation}
+a_{\rm drift} \propto \frac{\Sigma_d}{\rho_s}
+\left(\frac{v_{\rm K}}{c_s}\right)^2
+\left|\frac{\partial \ln P}{\partial \ln r}\right|^{-1}
+\end{equation}
+donde $\Sigma_d$ es la densidad superficial de polvo.
+
+Las escalas temporales de deriva radial son considerablemente menores que las escalas de coagulación, lo que conduciría a una rápida acreción estelar del material sólido si no existiesen mecanismos capaces de detener este transporte radial.
+
+
+% ---------------------------------------------------------
+
+\section{Subestructuras y Trampas de Presión}
+\label{sec:subestructuras}
+
+\invisiblesubsection{Origen de Pressure Bumps}
+
+En contraste con la visión clásica de discos suaves, las observaciones modernas muestran que los discos protoplanetarios presentan anillos, gaps y múltiples subestructuras radiales \citep{ALMAPartnership2015, Andrews2018}. Estas perturbaciones locales del perfil de presión, conocidas como \textit{pressure bumps}, pueden originarse mediante diversos mecanismos físicos.
+
+Entre los mecanismos más importantes se encuentra la interacción gravitacional entre el disco y planetas masivos embebidos, capaces de abrir gaps y generar máximos locales de presión en los bordes externos de sus órbitas \citep{Kanagawa2016}. Asimismo, procesos hidrodinámicos e inestabilidades magnetohidrodinámicas también pueden producir estructuras similares. En particular, las variaciones abruptas de viscosidad en regiones de baja ionización (\textit{dead zones}) favorecen acumulaciones locales de gas que alteran significativamente el perfil de presión del disco.
+
+Desde el punto de vista morfológico, el perfil de un gap inducido por un planeta masivo puede modelarse analíticamente. El modelo de \citet{Kanagawa2016} relaciona el ancho y la profundidad del gap con la masa del planeta y los parámetros viscosos del disco. El perfil de \citet{Duffell2020} complementa esta descripción, proporcionando una función suave que reproduce fielmente los resultados de simulaciones hidrodinámicas de alta resolución. En ambos casos, el borde externo del gap actúa como una trampa de presión natural capaz de retener sólidos e interrumpir el flujo de pebbles hacia la estrella \citep{Pinilla2012, Baruteau2019}.
+
+\invisiblesubsection{Filtrado de Pebbles}
+
+En un disco suave, el gradiente de presión negativo induce una rápida deriva radial de pebbles hacia la estrella. Sin embargo, en presencia de un \textit{pressure bump}, el gradiente de presión puede invertirse localmente.
+
+En estas regiones, el gas alcanza velocidades cercanas o incluso superiores a la velocidad Kepleriana, empujando aerodinámicamente a las partículas hacia el máximo de presión. Como consecuencia, los pebbles quedan atrapados y su transporte radial se modifica sustancialmente \citep{Pinilla2012, Ataiee2018}.
+
+\invisiblesubsection{Impacto sobre el Flujo Sólido}
+
+La acumulación de sólidos en trampas de presión incrementa localmente la razón polvo-gas y favorece la formación de planetesimales \citep{Carrera2021} por mecanismos de colapso gravitacional colectivo.
+
+Esta retención implica una reducción significativa del flujo radial de pebbles disponible para el disco interno, la cual modifica directamente las condiciones de crecimiento de planetesimales interiores, afectando tanto las tasas de acreción como la composición final de los planetas formados.
+
+Este mecanismo constituye la motivación central del presente trabajo, el cual explora cómo distintas configuraciones de subestructuras y parámetros turbulentos alteran el transporte de sólidos en discos protoplanetarios.
+
+% ---------------------------------------------------------
+
+\section{Pebble Accretion}
+\label{sec:pebble_accretion}
+
+\invisiblesubsection{Masa de Inicio}
+
+Para que un embrión planetario (planetesimal) entre al régimen de \textit{pebble accretion}, debe superar una masa crítica conocida como masa de inicio (\textit{onset mass}). Por debajo de este umbral, las interacciones entre pebbles y el cuerpo planetario son predominantemente balísticas y poco eficientes.
+
+Una vez alcanzada esta masa, la gravedad del embrión y el arrastre aerodinámico permiten disipar energía cinética de los pebbles, aumentando drásticamente la sección eficaz de acreción e iniciando una fase de crecimiento altamente eficiente \citep{Lambrechts2014, Ormel2017}.
+
+\invisiblesubsection{Regímenes de Acreción}
+
+A medida que el planeta crece, la acreción transita entre distintos regímenes geométricos y dinámicos \citep{Ormel2017}.
+
+Geométricamente, la acreción evoluciona desde un régimen tridimensional (3D), donde el radio efectivo de acreción es menor que la altura de escala del polvo ($H_{\rm peb}$), hacia un régimen bidimensional (2D), donde el planeta interactúa con prácticamente toda la capa de pebbles.
+
+Cinemáticamente, el sistema transita desde el régimen de \textit{headwind}, dominado por deriva aerodinámica, hacia el régimen de \textit{shear}, donde domina la cizalla Kepleriana local.
+
+En el régimen bidimensional, la tasa de acreción puede aproximarse como:
+\begin{equation}
+\dot{M}_{\rm PA} \sim 2 R_{\rm acc} v_{\rm rel} \Sigma_{\rm peb}
+\end{equation}
+donde $R_{\rm acc}$ es el radio efectivo de acreción, $v_{\rm rel}$ la velocidad relativa entre pebbles y planeta, y $\Sigma_{\rm peb}$ la densidad superficial de sólidos \citep{Lambrechts2014}.
+
+\invisiblesubsection{Flujo Radial de Pebbles}
+
+El flujo de masa sólida transportado radialmente hacia la estrella se define como:
+\begin{equation}
+\dot{M}_{\rm peb} = 2\pi r \Sigma_{\rm peb} v_r
+\end{equation}
+donde $\Sigma_{\rm peb}$ corresponde a la densidad superficial de pebbles y $v_r$ a su velocidad radial. La disponibilidad de este flujo es el factor limitante del crecimiento por pebble accretion: una reducción de $\dot{M}_{\rm peb}$ ---por ejemplo, causada por una trampa de presión exterior--- puede frenar o detener el crecimiento del embrión antes de alcanzar la masa de aislamiento \citep{Lambrechts2014}.
+
+\invisiblesubsection{Masa de Aislamiento}
+
+A medida que el planeta incrementa su masa, su perturbación gravitacional sobre el disco modifica localmente el perfil de presión del gas, formando un \textit{pressure bump} exterior que bloquea el flujo entrante de pebbles.
+
+La masa planetaria a la cual ocurre este fenómeno se conoce como masa de aislamiento:
+\begin{equation}
+    M_{\rm iso} \propto \left(\frac{H}{r}\right)^3 M_*
+\end{equation}
+donde $H/r$ es la razón de aspecto del disco y $M_*$ la masa estelar \citep{Lambrechts2014, Ormel2017, Ataiee2018, Bitsch2015}.
+
+La masa de aislamiento marca el fin del crecimiento eficiente mediante pebble accretion y puede representar el inicio de la acreción significativa de envoltura gaseosa.
+
+% ---------------------------------------------------------
+
+\section{Snowline y Evolución Composicional}
+
+\invisiblesubsection{Migración de la Línea de Nieve}
+
+Las propiedades térmicas del disco generan regiones de condensación para distintos compuestos volátiles. La más importante corresponde a la snowline del agua, localizada aproximadamente donde:
+\begin{equation}
+T_{\rm snow} \sim 170 \ {\rm K}
+\end{equation}
+
+Durante etapas tempranas del disco, el calentamiento viscoso desplaza esta línea hacia regiones externas. Conforme el disco evoluciona y se enfría —a medida que la tasa de acreción estelar $\dot{M}_\star$ disminuye progresivamente— la snowline migra hacia radios menores \citep{Hartmann1998, Oka2011}.
+
+Esta evolución temporal modifica continuamente las regiones del disco capaces de aportar material rocoso o material rico en hielos durante el crecimiento planetario.
+
+\invisiblesubsection{Fragmentación Dependiente de Composición}
+
+La velocidad crítica de fragmentación depende fuertemente de la composición físico-química de las partículas \citep{Gundlach_2014, Blum2018, Musiolik_Grzegorz_Gerhard2019, Drazkowska2023}.
+
+Fuera de la snowline, los mantos de hielo aumentan significativamente la adhesividad del material \citep{Gundlach_2014}, permitiendo velocidades críticas del orden de:
+\begin{equation}
+v_{\rm frag} \sim 10 \ {\rm m/s}
+\end{equation}
+
+En el interior de la snowline, la sublimación del hielo deja partículas secas dominadas por silicatos, mucho más frágiles \citep{Blum2018, Musiolik_Grzegorz_Gerhard2019}:
+\begin{equation}
+v_{\rm frag} \sim 1 \ {\rm m/s}
+\end{equation}
+
+Como consecuencia, el tamaño máximo y el número de Stokes de los sólidos decrecen significativamente en las regiones internas del disco.
+
+\invisiblesubsection{Pebble Snow y Waterworlds}
+
+La deriva radial de pebbles transporta continuamente material rico en volátiles desde el disco externo hacia regiones internas, enriqueciendo químicamente tanto el gas como los sólidos interiores \citep{Booth2017, Booth2019}. Este proceso, conocido como \textit{pebble snow}, ha sido detectado observacionalmente a través de exceso de vapor de agua frío cerca de la snowline en discos compactos \citep{Banzatti2023}.
+
+Cuando partículas heladas cruzan la snowline, el hielo sublima e inyecta vapor de agua al gas del disco. Sin embargo, embriones localizados justo fuera de esta frontera pueden interceptar eficientemente pebbles ricos en hielo antes de su sublimación.
+
+La acreción sostenida de este material permite incorporar enormes cantidades de agua a los núcleos planetarios, favoreciendo la formación de planetas con fracciones de agua significativamente superiores a las del Sistema Solar, conocidos como \textit{waterworlds} \citep{Bitsch2021, McCloat2025, Drazkowska2023}.
+
+% ---------------------------------------------------------
+
+\section{Impacto de las Subestructuras sobre el Flujo de Pebble}
+
+Dado que las subestructuras modifican el transporte radial de sólidos, comprender cómo distintas configuraciones de \textit{pressure bumps} alteran el \textit{pebble flux} resulta fundamental para construir modelos más realistas de formación planetaria.
+
+En este trabajo se estudia el impacto de distintas configuraciones de subestructuras y parámetros turbulentos sobre la evolución del flujo de pebbles utilizando simulaciones numéricas de evolución de polvo y gas en discos protoplanetarios.

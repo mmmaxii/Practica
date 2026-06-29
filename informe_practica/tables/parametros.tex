@@ -1,0 +1,93 @@
+\begin{table*}[t]
+\centering
+\caption{Parámetros globales del modelo. Los valores entre corchetes indican los rangos explorados en los barridos poblacionales.}
+\small
+
+\begin{tabular}{C{2.5cm}C{3.8cm}p{8.8cm}}
+\hline\hline
+Símbolo & Valor [Rango] & Descripción \\
+\hline
+
+\multicolumn{3}{c}{\textit{Estrella y disco}}\\
+\hline
+
+$M_*$ &
+$1.0\,M_\odot$ &
+Masa de la estrella central. \\
+
+$R_*$ &
+$2.1\,R_\odot$ &
+Radio estelar inflado correspondiente a la fase de pre-secuencia principal. \\
+
+$T_{\rm eff}$ &
+$4000\,\mathrm{K}$ &
+Temperatura efectiva que determina la estructura térmica del disco. \\
+
+$M_{\rm disk}/M_*$ &
+0.05 &
+Fracción de masa inicial del disco. \\
+
+$R_c$ &
+$30.0\,\mathrm{AU}$ &
+Radio característico asociado al decaimiento exponencial de la densidad superficial del gas. \\
+
+$\alpha$ &
+$10^{-3}\,[10^{-4}-10^{-2}]$ &
+Parámetro de viscosidad turbulenta de Shakura--Sunyaev. \\
+
+$R_{\rm in}-R_{\rm out}$ &
+$0.5-100\,\mathrm{AU}$ &
+Límites interno y externo del dominio radial. \\
+
+$N_r$ &
+300 &
+Número de celdas de la grilla radial logarítmica. \\
+
+\hline
+\multicolumn{3}{c}{\textit{Embriones planetarios}}\\
+\hline
+
+$n_{\rm emb}$ &
+1 &
+Número de embriones por simulación. \\
+
+$M_{\rm emb, 0}$ &
+$10^{-4}\,M_\oplus\,[10^{-5}-10^{-2}]$ &
+Masa inicial del embrión planetario. \\
+
+$r_{\rm seed}$ &
+$1.0\,\mathrm{AU}$ &
+Ubicación radial del embrión. \\
+
+\hline
+\multicolumn{3}{c}{\textit{Gaps y subestructuras}}\\
+\hline
+
+$M_{\rm gap}$ &
+$0.1\,M_{\rm Jup}\,[0.01-5.0]$ &
+Masa del planeta gigante responsable de abrir el gap. \\
+
+$r_{\rm gap}$ &
+$10.0\,\mathrm{AU}\,[5.0-30.0]$ &
+Ubicación radial del gap. \\
+
+$A_{\rm sin}$ &
+$[0.5-5.0]$ &
+Amplitud de las perturbaciones sinusoidales. \\
+
+\hline
+\multicolumn{3}{c}{\textit{Línea de nieve y polvo}}\\
+\hline
+
+$v_{\rm frag}$ &
+$1.0 \rightarrow 1.0-3.0-10.0\,\mathrm{m\,s^{-1}}$&
+Velocidad umbral de fragmentación para silicatos en la región interior y hielos en la región exterior. \\
+
+$r_{\rm SL}$ &
+$\sim 2.7 \rightarrow 0.5\,\mathrm{AU}$ &
+Evolución temporal de la posición de la línea de nieve. \\
+
+\hline
+\end{tabular}
+\label{tab:parametros_globales}
+\end{table*}

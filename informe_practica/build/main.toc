@@ -1,75 +1,75 @@
 \babel@toc {spanish}{}\relax 
 \contentsline {chapter}{Agradecimientos}{\es@scroman {i}}{chapter*.1}%
-\contentsline {chapter}{\numberline {1}Introducción}{1}{chapter.1}%
-\contentsline {section}{\numberline {1.1}Formación Planetaria y Acreción de Pebbles}{1}{section.1.1}%
-\contentsline {section}{\numberline {1.2}El Problema de los Discos Suaves}{1}{section.1.2}%
-\contentsline {section}{\numberline {1.3}Subestructuras en Discos Protoplanetarios}{2}{section.1.3}%
-\contentsline {section}{\numberline {1.4}Pebble Flux y Composición Planetaria}{3}{section.1.4}%
-\contentsline {section}{\numberline {1.5}Objetivos del Trabajo}{3}{section.1.5}%
-\contentsline {chapter}{\numberline {2}Marco Teórico}{5}{chapter.2}%
-\contentsline {section}{\numberline {2.1}Evolución de Polvo en Discos Protoplanetarios}{5}{section.2.1}%
-\contentsline {subsection}{\numberline {2.1.1}Crecimiento y Fragmentación}{5}{subsection.2.1.1}%
-\contentsline {subsection}{\numberline {2.1.2}Número de Stokes y Acoplamiento Aerodinámico}{6}{subsection.2.1.2}%
-\contentsline {subsection}{\numberline {2.1.3}Deriva Radial de Pebbles}{6}{subsection.2.1.3}%
-\contentsline {section}{\numberline {2.2}Subestructuras y Trampas de Presión}{7}{section.2.2}%
-\contentsline {subsection}{\numberline {2.2.1}Origen de Pressure Bumps}{7}{subsection.2.2.1}%
-\contentsline {subsection}{\numberline {2.2.2}Filtrado de Pebbles}{7}{subsection.2.2.2}%
-\contentsline {subsection}{\numberline {2.2.3}Impacto sobre el Flujo Sólido}{7}{subsection.2.2.3}%
-\contentsline {section}{\numberline {2.3}Pebble Accretion}{8}{section.2.3}%
-\contentsline {subsection}{\numberline {2.3.1}Masa de Inicio}{8}{subsection.2.3.1}%
-\contentsline {subsection}{\numberline {2.3.2}Regímenes de Acreción}{8}{subsection.2.3.2}%
-\contentsline {subsection}{\numberline {2.3.3}Masa de Aislamiento}{9}{subsection.2.3.3}%
-\contentsline {section}{\numberline {2.4}Snowline y Evolución Composicional}{9}{section.2.4}%
-\contentsline {subsection}{\numberline {2.4.1}Migración de la Línea de Nieve}{9}{subsection.2.4.1}%
-\contentsline {subsection}{\numberline {2.4.2}Fragmentación Dependiente de Composición}{9}{subsection.2.4.2}%
-\contentsline {subsection}{\numberline {2.4.3}Pebble Snow y Waterworlds}{10}{subsection.2.4.3}%
-\contentsline {section}{\numberline {2.5}Motivación Científica}{10}{section.2.5}%
-\contentsline {chapter}{\numberline {3}Metodología Computacional}{11}{chapter.3}%
-\contentsline {section}{\numberline {3.1}Framework Base}{11}{section.3.1}%
-\contentsline {subsection}{\numberline {3.1.1}TripodPy y DustPyLib}{11}{subsection.3.1.1}%
-\contentsline {subsection}{\numberline {3.1.2}Configuración Numérica}{11}{subsection.3.1.2}%
-\contentsline {section}{\numberline {3.2}Implementación de Discos Estructurados}{12}{section.3.2}%
-\contentsline {subsection}{\numberline {3.2.1}Modelado de Pressure Bumps}{13}{subsection.3.2.1}%
-\contentsline {subsection}{\numberline {3.2.2}Perturbaciones del Perfil de Gas}{13}{subsection.3.2.2}%
-\contentsline {subsection}{\numberline {3.2.3}Modificación del Gradiente de Presión}{13}{subsection.3.2.3}%
-\contentsline {section}{\numberline {3.3}Evolución Dinámica de la Snowline}{13}{section.3.3}%
-\contentsline {subsection}{\numberline {3.3.1}Interpolación Temporal}{13}{subsection.3.3.1}%
-\contentsline {subsection}{\numberline {3.3.2}Fragmentación Dependiente de Composición}{13}{subsection.3.3.2}%
-\contentsline {section}{\numberline {3.4}Modelo de Pebble Accretion}{13}{section.3.4}%
-\contentsline {subsection}{\numberline {3.4.1}Arquitectura PA3Py}{13}{subsection.3.4.1}%
-\contentsline {subsection}{\numberline {3.4.2}Cálculo del Pebble Flux}{13}{subsection.3.4.2}%
-\contentsline {subsection}{\numberline {3.4.3}Trackeo Composicional}{13}{subsection.3.4.3}%
-\contentsline {section}{\numberline {3.5}Validación y Tests Numéricos}{13}{section.3.5}%
-\contentsline {subsection}{\numberline {3.5.1}Conservación de Masa}{14}{subsection.3.5.1}%
-\contentsline {subsection}{\numberline {3.5.2}Convergencia Espacial}{14}{subsection.3.5.2}%
-\contentsline {subsection}{\numberline {3.5.3}Comparación con Modelos Smooth}{14}{subsection.3.5.3}%
-\contentsline {chapter}{\numberline {4}Resultados y Análisis}{15}{chapter.4}%
-\contentsline {section}{\numberline {4.1}Impacto de Subestructuras sobre el Flujo de Pebbles}{16}{section.4.1}%
-\contentsline {subsection}{\numberline {4.1.1}Evolución de la Densidad Superficial}{16}{subsection.4.1.1}%
-\contentsline {subsection}{\numberline {4.1.2}Filtrado de Material Sólido}{16}{subsection.4.1.2}%
-\contentsline {subsection}{\numberline {4.1.3}Dependencia con la Intensidad del Gap}{16}{subsection.4.1.3}%
-\contentsline {section}{\numberline {4.2}Evolución de la Distribución de Tamaños}{16}{section.4.2}%
-\contentsline {subsection}{\numberline {4.2.1}Fragmentación y Drift}{16}{subsection.4.2.1}%
-\contentsline {subsection}{\numberline {4.2.2}Acumulación en Trampas de Presión}{16}{subsection.4.2.2}%
-\contentsline {section}{\numberline {4.3}Crecimiento Planetario en Discos Estructurados}{16}{section.4.3}%
-\contentsline {subsection}{\numberline {4.3.1}Discos Smooth vs Structured}{16}{subsection.4.3.1}%
-\contentsline {subsection}{\numberline {4.3.2}Eficiencia de Pebble Accretion}{16}{subsection.4.3.2}%
-\contentsline {subsection}{\numberline {4.3.3}Dependencia Temporal del Pebble Flux}{16}{subsection.4.3.3}%
-\contentsline {section}{\numberline {4.4}Evolución Composicional y Waterworlds}{16}{section.4.4}%
-\contentsline {subsection}{\numberline {4.4.1}Migración de la Snowline}{16}{subsection.4.4.1}%
-\contentsline {subsection}{\numberline {4.4.2}Pebble Snow}{16}{subsection.4.4.2}%
-\contentsline {subsection}{\numberline {4.4.3}Fracción Final de Agua}{16}{subsection.4.4.3}%
-\contentsline {section}{\numberline {4.5}Barridos Poblacionales}{16}{section.4.5}%
-\contentsline {subsection}{\numberline {4.5.1}Distribución Final de Masas}{16}{subsection.4.5.1}%
-\contentsline {subsection}{\numberline {4.5.2}Taxonomía Composicional}{16}{subsection.4.5.2}%
-\contentsline {chapter}{\numberline {5}Discusión}{17}{chapter.5}%
-\contentsline {section}{\numberline {5.1}Comparación con Modelos Clásicos}{17}{section.5.1}%
-\contentsline {section}{\numberline {5.2}Implicancias para Pebble Accretion}{17}{section.5.2}%
-\contentsline {section}{\numberline {5.3}Relación con Observaciones de ALMA}{17}{section.5.3}%
-\contentsline {section}{\numberline {5.4}Limitaciones del Modelo}{17}{section.5.4}%
-\contentsline {chapter}{\numberline {6}Conclusiones}{18}{chapter.6}%
-\contentsline {section}{\numberline {6.1}Síntesis de Resultados}{18}{section.6.1}%
-\contentsline {section}{\numberline {6.2}Impacto de las Subestructuras}{18}{section.6.2}%
-\contentsline {section}{\numberline {6.3}Formación de Waterworlds}{18}{section.6.3}%
-\contentsline {section}{\numberline {6.4}Trabajo Futuro}{18}{section.6.4}%
-\contentsline {chapter}{Bibliografía}{19}{section.6.4}%
+\contentsline {chapter}{Resumen}{1}{chapter*.3}%
+\contentsline {chapter}{\numberline {1}Introducción}{2}{chapter.1}%
+\contentsline {section}{\numberline {1.1}Formación Planetaria y Acreción de Pebbles}{2}{section.1.1}%
+\contentsline {section}{\numberline {1.2}El Problema de los Discos Suaves}{2}{section.1.2}%
+\contentsline {section}{\numberline {1.3}Subestructuras en Discos Protoplanetarios}{3}{section.1.3}%
+\contentsline {section}{\numberline {1.4}Pebble Flux y Composición Planetaria}{4}{section.1.4}%
+\contentsline {section}{\numberline {1.5}Transporte Tardío de Agua y Rol de las Subestructuras}{5}{section.1.5}%
+\contentsline {subsection}{\numberline {1.5.1}Hipótesis de Trabajo}{5}{subsection.1.5.1}%
+\contentsline {section}{\numberline {1.6}Objetivos del Trabajo}{6}{section.1.6}%
+\contentsline {chapter}{\numberline {2}Marco Teórico}{7}{chapter.2}%
+\contentsline {section}{\numberline {2.1}Evolución de Polvo en Discos Protoplanetarios}{7}{section.2.1}%
+\contentsline {subsection}{\numberline {2.1.1}Crecimiento y Fragmentación}{7}{section.2.1}%
+\contentsline {subsection}{\numberline {2.1.2}Número de Stokes y Acoplamiento Aerodinámico}{7}{equation.2.1}%
+\contentsline {subsection}{\numberline {2.1.3}Altura de Escala del Polvo}{8}{equation.2.3}%
+\contentsline {subsection}{\numberline {2.1.4}Deriva Radial de Pebbles}{8}{equation.2.5}%
+\contentsline {section}{\numberline {2.2}Subestructuras y Trampas de Presión}{9}{section.2.2}%
+\contentsline {subsection}{\numberline {2.2.1}Origen de Pressure Bumps}{9}{section.2.2}%
+\contentsline {subsection}{\numberline {2.2.2}Filtrado de Pebbles}{9}{section.2.2}%
+\contentsline {subsection}{\numberline {2.2.3}Impacto sobre el Flujo Sólido}{10}{section.2.2}%
+\contentsline {section}{\numberline {2.3}Pebble Accretion}{10}{section.2.3}%
+\contentsline {subsection}{\numberline {2.3.1}Masa de Inicio}{10}{section.2.3}%
+\contentsline {subsection}{\numberline {2.3.2}Regímenes de Acreción}{10}{section.2.3}%
+\contentsline {subsection}{\numberline {2.3.3}Flujo Radial de Pebbles}{10}{equation.2.10}%
+\contentsline {subsection}{\numberline {2.3.4}Masa de Aislamiento}{10}{equation.2.11}%
+\contentsline {section}{\numberline {2.4}Snowline y Evolución Composicional}{11}{section.2.4}%
+\contentsline {subsection}{\numberline {2.4.1}Migración de la Línea de Nieve}{11}{section.2.4}%
+\contentsline {subsection}{\numberline {2.4.2}Fragmentación Dependiente de Composición}{11}{equation.2.13}%
+\contentsline {subsection}{\numberline {2.4.3}Pebble Snow y Waterworlds}{11}{equation.2.15}%
+\contentsline {section}{\numberline {2.5}Impacto de las Subestructuras sobre el Flujo de Pebble}{12}{section.2.5}%
+\contentsline {chapter}{\numberline {3}Metodología Computacional}{13}{chapter.3}%
+\contentsline {section}{\numberline {3.1}Framework Base: Modelado de Discos 1D}{13}{section.3.1}%
+\contentsline {subsection}{\numberline {3.1.1}TriPoDPy y las Poblaciones de Polvo}{13}{section.3.1}%
+\contentsline {subsection}{\numberline {3.1.2}Configuración Numérica y Condiciones Iniciales}{13}{section.3.1}%
+\contentsline {section}{\numberline {3.2}Implementación de Discos Estructurados}{13}{section.3.2}%
+\contentsline {subsection}{\numberline {3.2.1}Implementación de los Pressure Bumps}{13}{section.3.2}%
+\contentsline {subsection}{\numberline {3.2.2}Evolución del Perfil de Densidad y Transporte de Sólidos}{14}{section.3.2}%
+\contentsline {section}{\numberline {3.3}Evolución Dinámica de la Snowline}{15}{section.3.3}%
+\contentsline {subsection}{\numberline {3.3.1}Evolución Temporal de la Tasa de Acreción}{15}{section.3.3}%
+\contentsline {subsection}{\numberline {3.3.2}Fragmentación Dependiente de la Composición Hielo-Roca}{17}{figure.caption.8}%
+\contentsline {section}{\numberline {3.4}Modelo Computacional de Acreción: \texttt {PA3Py}}{18}{section.3.4}%
+\contentsline {subsection}{\numberline {3.4.1}Regímenes de Acreción}{18}{section.3.4}%
+\contentsline {subsection}{\numberline {3.4.2}Corrección por Espesor Vertical}{18}{equation.3.3}%
+\contentsline {subsection}{\numberline {3.4.3}Masa de Aislamiento}{18}{equation.3.3}%
+\contentsline {subsection}{\numberline {3.4.4}Seguimiento Composicional del Contenido de Agua}{19}{equation.3.4}%
+\contentsline {section}{\numberline {3.5}Resultados y Validación de Simulaciones}{19}{section.3.5}%
+\contentsline {subsection}{\numberline {3.5.1}Configuración del Disco y Estructura Termodinámica}{19}{section.3.5}%
+\contentsline {subsection}{\numberline {3.5.2}Inyección de Embriones}{19}{equation.3.5}%
+\contentsline {chapter}{\numberline {4}Resultados y Análisis}{21}{chapter.4}%
+\contentsline {section}{\numberline {4.1}Evolución del polvo}{21}{section.4.1}%
+\contentsline {subsection}{\numberline {4.1.1}Impacto de la Velocidad de Fragmentación}{21}{section.4.1}%
+\contentsline {subsection}{\numberline {4.1.2}Dependencia con la Amplitud de la Perturbación}{21}{figure.caption.9}%
+\contentsline {subsection}{\numberline {4.1.3}Efecto de la Turbulencia}{23}{figure.caption.10}%
+\contentsline {section}{\numberline {4.2}Crecimiento planetario}{24}{section.4.2}%
+\contentsline {subsection}{\numberline {4.2.1}Gap único}{24}{figure.caption.12}%
+\contentsline {subsection}{\numberline {4.2.2}Perfil sinusoidal}{24}{figure.caption.12}%
+\contentsline {subsection}{\numberline {4.2.3}Dependencia con la turbulencia}{24}{figure.caption.12}%
+\contentsline {section}{\numberline {4.3}Síntesis Poblacional: La Isla de Crecimiento}{25}{section.4.3}%
+\contentsline {subsection}{\numberline {4.3.1}Dinámica temporal del gap}{25}{section.4.3}%
+\contentsline {subsection}{\numberline {4.3.2}Mapa de parámetros globales}{26}{figure.caption.14}%
+\contentsline {subsection}{\numberline {4.3.3}Distribución composicional}{27}{figure.caption.15}%
+\contentsline {chapter}{\numberline {5}Discusión}{30}{chapter.5}%
+\contentsline {section}{\numberline {5.1}Regulación del Flujo de Pebbles y el Filtro Aerodinámico}{30}{section.5.1}%
+\contentsline {section}{\numberline {5.2}La Isla de Crecimiento y la Influencia de la Turbulencia}{31}{section.5.2}%
+\contentsline {section}{\numberline {5.3}Bifurcación Poblacional: Planetas Secos y Ricos en Agua}{32}{section.5.3}%
+\contentsline {section}{\numberline {5.4}Comparación con Modelos Clásicos de Discos Suaves}{33}{section.5.4}%
+\contentsline {section}{\numberline {5.5}Limitaciones del Modelo}{33}{section.5.5}%
+\contentsline {chapter}{\numberline {6}Conclusiones}{35}{chapter.6}%
+\contentsline {section}{\numberline {6.1}Síntesis de Resultados y Aportes Principales}{35}{section.6.1}%
+\contentsline {section}{\numberline {6.2}La Regulación Temporal del Flujo de Pebbles y la Isla de Crecimiento}{36}{section.6.2}%
+\contentsline {section}{\numberline {6.3}Cronología del Flujo de Pebbles y Enriquecimiento en Agua}{37}{section.6.3}%
+\contentsline {section}{\numberline {6.4}Implicancias para la Formación Planetaria}{37}{section.6.4}%
+\contentsline {section}{\numberline {6.5}Trabajo Futuro}{38}{section.6.5}%
+\contentsline {chapter}{Bibliografía}{39}{section.6.5}%

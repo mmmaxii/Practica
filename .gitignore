@@ -3,32 +3,34 @@ __pycache__
 *.pyc
 codigos/data_post_pipeline
 codigos/data_pre_pipeline
-
+codigos/tools
+codigos/data/runs/
+C:\astro\Codigos practica + docs + papers\codigos\scratch\Pre oka and hartmann
 codigos/doc_standar_model.txt
 codigos/PACC_versionchatgpt.py
 codigos/PebbleAccretion_docs.md 
 codigos/PebbleAccretion.py
-
+codigos\scratch\add_grid_menu.py
 codigos/PA3Py/README.md
 docs_nogit/
-
+codigos\scratch\add_grid.py
 codigos/PA2Py
-
+C:\astro\Codigos practica + docs + papers\codigos\scratch\analisis_estadistico_v10.py
 codigos/data_postpost_pipeline
 codigos/all
-
+C:\astro\Codigos practica + docs + papers\codigos\scratch\check_cache.py
 codigos/data_gaps_pipeline
-data
 
+codigos/pipeline_analysis
+codigos/docs
+codigos/disk_visualizer
 codigos/figs_gaps_pipeline
-
+codigos\avances y memorias
 Pre_pipeline/
-codigos/data_1e5
-
+codigos/avances y memorias
 codigos/figures/
-codigos/data/
 codigos/notebooks
 codigos/output_10kyr_oka
 codigos/scratch/Pre oka and hartmann
 
- 
+Obsolet_files

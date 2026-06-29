@@ -147,6 +147,19 @@ class SinusoidalAnalyzer(BaseAnalyzer):
 
 
 class DelayedAnalyzer(BaseAnalyzer):
+    def get_target_runs(self):
+        import glob
+        runs = glob.glob(os.path.join(self.runs_dir, "*"))
+        target_runs = []
+        for rpath in runs:
+            if not os.path.isdir(rpath):
+                continue
+            if os.path.exists(os.path.join(rpath, "data0000.hdf5")):
+                completed = os.path.exists(os.path.join(rpath, "data0099.hdf5"))
+                target_runs.append((rpath, completed))
+        target_runs.sort()
+        return target_runs
+
     def parse_run_name(self, run_name):
         # Ej: run_retrasado_r10.0_m0.01_tgap1000000
         parts = run_name.split('_')

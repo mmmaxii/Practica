@@ -46,17 +46,81 @@ def compilar_tabla_maestra():
             r_gap = d.get('r_gap', 0.0)
             m_gap = d.get('M_gap', 0.0)
             
-            # Masa final (último valor del array mass_e)
             mass_arr = d.get('mass_e', [])
-            m_final = mass_arr[-1] if len(mass_arr) > 0 else m0
-            
-            # Parametros sinusoidales
+            if len(mass_arr) < 2:
+                m_final = m0
+                m_prev = m0
+            else:
+                m_final = mass_arr[-1]
+                m_prev = mass_arr[-2]
+                
             n_gaps = d.get('n_gaps', 0)
             amp_val = d.get('amp_val', 0.0)
-            
-            # Fracción de agua
             frac_h2o = d.get('frac_h2o_final', 0.0)
+            f_water_final = frac_h2o / 100.0
             
+            t_final = d.get('times_yr', [0])[-1] / 1e6 if 'times_yr' in d else 0.0
+            
+            # Extracción robusta de M_iso_e
+            m_iso = d.get('m_iso_e', 3.955)
+            if m_iso is None:
+                m_iso = 3.955
+            elif isinstance(m_iso, (list, tuple)):
+                m_iso = m_iso[-1] if len(m_iso) > 0 else 3.955
+            elif type(m_iso).__name__ == 'ndarray':
+                m_iso = m_iso[-1] if len(m_iso) > 0 else 3.955
+                
+            if m_iso >= 100.0:
+                m_iso = 3.955
+                
+            R_var = abs(m_final - m_prev) / m_final if m_final > 0 else 0.0
+            
+            # Lógica de Validación
+            is_valid = True
+            discard_reason = ""
+            
+            if m_final <= 0:
+                is_valid = False
+                discard_reason = "Fell into star (m <= 0)"
+                m_final = 0.0
+            else:
+                if m_final >= m_iso * 0.90:
+                    pass # Si alcanza el 90% de la masa de aislamiento, es válido sin importar el tiempo
+                elif t_final >= 5.0:
+                    pass # Si duró 5 Myr, es válido
+                elif t_final >= 1.0 and t_final < 5.0:
+                    if R_var >= 0.10:
+                        is_valid = False
+                        discard_reason = "Unstable (R >= 10%)"
+                else:
+                    is_valid = False
+                    discard_reason = "Premature (< 1 Myr and < 90% M_iso)"
+                            
+            # Categorización
+            cat_masa = ""
+            cat_agua = ""
+            if m_final < 0.1:
+                cat_masa = "< 0.1 M_E"
+            elif m_final >= m_iso * 0.90:
+                cat_masa = "Isolation Mass"
+            else:
+                cat_masa = "> 0.1 M_E (No iso)"
+                
+            if cat_masa in ["Isolation Mass", "> 0.1 M_E (No iso)"]:
+                if f_water_final == 0.0:
+                    cat_agua = "0% Agua"
+                elif 0.0 < f_water_final < 0.0001:
+                    cat_agua = "Mundos Áridos"
+                elif 0.0001 <= f_water_final < 0.001:
+                    if m_final <= 1.0:
+                        cat_agua = "Análogo Terrestre Estricto"
+                    else:
+                        cat_agua = "Súper-Tierra Seca"
+                elif 0.001 <= f_water_final <= 0.10:
+                    cat_agua = "Transición (0.1%-10%)"
+                else:
+                    cat_agua = "Water Worlds (>10%)"
+                    
             todas_las_filas.append({
                 'run_name': run_name,
                 'v_frag': v_frag,
@@ -68,19 +132,32 @@ def compilar_tabla_maestra():
                 'n_gaps': n_gaps,
                 'amp_val': amp_val,
                 'M_final': m_final,
-                'frac_h2o_percent': frac_h2o
+                'M_prev': m_prev,
+                'T_final_Myr': t_final,
+                'M_iso_E': m_iso,
+                'R_variation': R_var,
+                'frac_h2o_percent': frac_h2o,
+                'Is_Valid': is_valid,
+                'Discard_Reason': discard_reason,
+                'Cat_Masa': cat_masa,
+                'Cat_Agua': cat_agua
             })
             
     print(f"Escribiendo {len(todas_las_filas)} entradas en {out_csv}...")
-    with open(out_csv, 'w', newline='') as f:
-        writer = csv.DictWriter(f, fieldnames=[
-            'run_name', 'v_frag', 'scenario', 'alpha', 'M_emb0', 
-            'r_gap', 'M_gap', 'n_gaps', 'amp_val', 'M_final', 'frac_h2o_percent'
-        ])
-        writer.writeheader()
-        writer.writerows(todas_las_filas)
-        
-    print("¡Tabla Maestra generada con éxito!")
+    try:
+        with open(out_csv, 'w', newline='', encoding='utf-8') as f:
+            fieldnames = [
+                'run_name', 'v_frag', 'scenario', 'alpha', 'M_emb0', 
+                'r_gap', 'M_gap', 'n_gaps', 'amp_val', 'M_final', 'M_prev',
+                'T_final_Myr', 'M_iso_E', 'R_variation', 'frac_h2o_percent',
+                'Is_Valid', 'Discard_Reason', 'Cat_Masa', 'Cat_Agua'
+            ]
+            writer = csv.DictWriter(f, fieldnames=fieldnames)
+            writer.writeheader()
+            writer.writerows(todas_las_filas)
+        print("¡Tabla Maestra generada con éxito!")
+    except Exception as e:
+        print(f"Error escribiendo {out_csv}: {e}")
 
 if __name__ == '__main__':
     compilar_tabla_maestra()

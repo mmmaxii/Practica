@@ -67,50 +67,34 @@ def run_population_synthesis(alphas_full, m0_map):
     import pickle
     import glob
     import re
-    global_data = []
+    import pandas as pd
+    csv_path = "data/summary_master_todos_casos.csv"
+    if not os.path.exists(csv_path):
+        print(f"Error: No se encontró la tabla compilada en {csv_path}.")
+        input("Presione Enter...")
+        return
+        
+    df_master = pd.read_csv(csv_path, encoding='utf-8')
+    global_data = df_master[df_master['scenario'].str.lower() == scenario_target.lower()].copy()
     
-    print(f"\nRecolectando cachés para el escenario: {scenario_target}...")
-    for vf in vfrags:
-        v_val = float(vf)
-        scen_path = os.path.join(base_data, f"vf_{vf}ms", scenario_target)
-        if not os.path.isdir(scen_path):
-            continue
-            
-        cache_files = glob.glob(os.path.join(scen_path, "**/cache_*.pkl"), recursive=True)
-        for cf in cache_files:
-            try:
-                with open(cf, 'rb') as f:
-                    data_list = pickle.load(f)
-                    for d in data_list:
-                        d['vfrag'] = v_val
-                        
-                        if 'm0_earth' not in d:
-                            m_match = re.search(r'_M0_([0-9\.e\-]+)\.pkl', cf)
-                            if m_match:
-                                d['m0_earth'] = float(m_match.group(1))
-                        
-                        if 'alpha' not in d:
-                            a_match = re.search(r'_a_([0-9\.e\-]+)_', cf)
-                            if a_match:
-                                d['alpha'] = float(a_match.group(1))
-                                
-                        global_data.append(d)
-            except Exception as e:
-                print(f"Error cargando {cf}: {e}")
-                
-    print(f"Total de cachés cargados: {len(global_data)}")
-    if len(global_data) == 0:
+    print(f"Total de simulaciones cargadas: {len(global_data)}")
+    if global_data.empty:
         input("Presione Enter...")
         return
         
     from pipeline_analysis.plotters import PlotterPopulation
     
-    out_dir = "data/figures/benchmarks"
+    out_dir = "data/figures/benchmarks/money_plot"
     os.makedirs(out_dir, exist_ok=True)
     fig_path = os.path.join(out_dir, f"population_{scenario_target}.png")
     
     print(f"Generando gráfica usando PlotterPopulation...")
-    PlotterPopulation.plot_poblacion_sintetica(global_data, fig_path, scenario_name=scenario_target.capitalize(), mass_threshold=0.1, water_threshold=0.10)
+    
+    print("\n¿Desea usar escala logarítmica para el eje X (Fracción de agua)?")
+    log_x_input = input("[S/N] (Por defecto S): ").strip().lower()
+    log_x = False if log_x_input == 'n' else True
+
+    PlotterPopulation.plot_poblacion_sintetica(global_data, fig_path, scenario_name=scenario_target.capitalize(), mass_threshold=0.1, water_threshold=0.10, log_x=log_x)
     
     input("\nPresione Enter para volver al menú principal...")
 
@@ -149,45 +133,24 @@ def run_fpost_analysis():
     import pickle
     import glob
     import re
-    global_data = []
+    import pandas as pd
+    csv_path = "data/summary_master_todos_casos.csv"
+    if not os.path.exists(csv_path):
+        print(f"Error: No se encontró la tabla compilada en {csv_path}.")
+        input("Presione Enter...")
+        return
+        
+    df_master = pd.read_csv(csv_path, encoding='utf-8')
+    global_data = df_master[df_master['scenario'].str.lower() == scenario_target.lower()].copy()
     
-    print(f"\nRecolectando cachés para el escenario: {scenario_target}...")
-    for vf in vfrags:
-        v_val = float(vf)
-        scen_path = os.path.join(base_data, f"vf_{vf}ms", scenario_target)
-        if not os.path.isdir(scen_path):
-            continue
-            
-        cache_files = glob.glob(os.path.join(scen_path, "**/cache_*.pkl"), recursive=True)
-        for cf in cache_files:
-            try:
-                with open(cf, 'rb') as f:
-                    data_list = pickle.load(f)
-                    for d in data_list:
-                        d['vfrag'] = v_val
-                        
-                        if 'm0_earth' not in d:
-                            m_match = re.search(r'_M0_([0-9\.e\-]+)\.pkl', cf)
-                            if m_match:
-                                d['m0_earth'] = float(m_match.group(1))
-                        
-                        if 'alpha' not in d:
-                            a_match = re.search(r'_a_([0-9\.e\-]+)_', cf)
-                            if a_match:
-                                d['alpha'] = float(a_match.group(1))
-                                
-                        global_data.append(d)
-            except Exception as e:
-                print(f"Error cargando {cf}: {e}")
-                
-    print(f"Total de cachés cargados: {len(global_data)}")
-    if len(global_data) == 0:
+    print(f"Total de simulaciones cargadas: {len(global_data)}")
+    if global_data.empty:
         input("Presione Enter...")
         return
         
     from pipeline_analysis.plotters import PlotterPopulation
     
-    out_dir = "data/figures/benchmarks"
+    out_dir = "data/figures/benchmarks/f_post"
     os.makedirs(out_dir, exist_ok=True)
     fig_path = os.path.join(out_dir, f"population_fpost_{scenario_target}.png")
     
@@ -197,14 +160,260 @@ def run_fpost_analysis():
     input("\nPresione Enter para volver al menú principal...")
 
 
+
+def run_population_single():
+    clear_screen()
+    print("=====================================================")
+    print("        PANEL CONCEPTUAL (Gráfico Único)             ")
+    print("=====================================================")
+    
+    base_data = "data/runs"
+    vfrags = ['1', '3', '10']
+    
+    import os, pickle, glob, re
+    scenarios_found = set()
+    exclude_scenarios = ['rounded']
+    for vf in vfrags:
+        vf_path = os.path.join(base_data, f"vf_{vf}ms")
+        if os.path.isdir(vf_path):
+            for s in os.listdir(vf_path):
+                if os.path.isdir(os.path.join(vf_path, s)) and s not in exclude_scenarios:
+                    scenarios_found.add(s)
+                    
+    if not scenarios_found: return
+    s_list = sorted(list(scenarios_found))
+    s_options = {str(i+1): s for i, s in enumerate(s_list)}
+    s_choice = get_choice("Seleccione el escenario:", s_options, allow_back=True)
+    if s_choice == '0': return
+    scenario_target = s_options[s_choice]
+    
+    import pandas as pd
+    csv_path = "data/summary_master_todos_casos.csv"
+    if not os.path.exists(csv_path):
+        print(f"Error: No se encontró la tabla compilada en {csv_path}.")
+        input("Presione Enter...")
+        return
+        
+    df_master = pd.read_csv(csv_path, encoding='utf-8')
+    global_data = df_master[df_master['scenario'].str.lower() == scenario_target.lower()].copy()
+    if global_data.empty:
+        print(f"No hay datos compilados para el escenario {scenario_target}.")
+        input("Presione Enter...")
+        return
+    
+    from pipeline_analysis.plotters import PlotterPopulation
+    out_dir = "data/figures/benchmarks/panel_conceptual"
+    os.makedirs(out_dir, exist_ok=True)
+    fig_path = os.path.join(out_dir, f"population_single_{scenario_target}.png")
+    
+    print(f"Generando panel conceptual...")
+    PlotterPopulation.plot_poblacion_sintetica_single(global_data, fig_path, scenario_name=scenario_target.capitalize(), mass_threshold=0.1)
+    input("\nPresione Enter para volver al menú principal...")
+
+def run_population_facet_scatter():
+    clear_screen()
+    print("=====================================================")
+    print("     DISPERSIÓN EN FACETAS (Masa vs. H2O por Alpha)  ")
+    print("=====================================================")
+    
+    base_data = "data/runs"
+    vfrags = ['1', '3', '10']
+    
+    import os, pickle, glob, re
+    import numpy as np
+    scenarios_found = set()
+    exclude_scenarios = ['rounded']
+    for vf in vfrags:
+        vf_path = os.path.join(base_data, f"vf_{vf}ms")
+        if os.path.isdir(vf_path):
+            for s in os.listdir(vf_path):
+                if os.path.isdir(os.path.join(vf_path, s)) and s not in exclude_scenarios:
+                    scenarios_found.add(s)
+                    
+    if not scenarios_found: return
+    s_list = sorted(list(scenarios_found))
+    s_options = {str(i+1): s for i, s in enumerate(s_list)}
+    s_choice = get_choice("Seleccione el escenario:", s_options, allow_back=True)
+    if s_choice == '0': return
+    scenario_target = s_options[s_choice]
+    
+    import pandas as pd
+    csv_path = "data/summary_master_todos_casos.csv"
+    if not os.path.exists(csv_path):
+        print(f"Error: No se encontró la tabla compilada en {csv_path}.")
+        input("Presione Enter...")
+        return
+        
+    df_master = pd.read_csv(csv_path, encoding='utf-8')
+    global_data = df_master[df_master['scenario'].str.lower() == scenario_target.lower()].copy()
+    if global_data.empty:
+        print(f"No hay datos compilados para el escenario {scenario_target}.")
+        input("Presione Enter...")
+        return
+        
+    m0_options = {
+        '1': '1e-5 (0.00001 M_earth)',
+        '2': '1e-4 (0.0001 M_earth)',
+        '3': '1e-3 (0.001 M_earth)',
+        '4': '1e-2 (0.01 M_earth)',
+        '5': '1e-1 (0.1 M_earth)'
+    }
+    m0_map = {'1': 0.00001, '2': 0.0001, '3': 0.001, '4': 0.01, '5': 0.1}
+
+    print("\nOpciones de masa inicial del embrión (M0):")
+    for k, v in m0_options.items():
+        print(f"[{k}] {v}")
+    print("\nIngrese los números de las masas que desea EXCLUIR separados por coma (ej: 1, 2, 3).")
+    print("Deje en blanco para incluir todas las masas.")
+    excluir_input = input("Excluir: ").strip()
+    
+    if excluir_input:
+        excluir_keys = [k.strip() for k in excluir_input.split(',')]
+        excluir_vals = [m0_map[k] for k in excluir_keys if k in m0_map]
+        if excluir_vals:
+            for val in excluir_vals:
+                global_data = global_data[~np.isclose(global_data['M_emb0'], val)]
+                
+    if global_data.empty:
+        print("Todos los datos fueron excluidos. No hay nada que graficar.")
+        input("Presione Enter...")
+        return
+    
+    from pipeline_analysis.plotters import PlotterPopulation
+    out_dir = "data/figures/benchmarks/facet_scatter"
+    os.makedirs(out_dir, exist_ok=True)
+    fig_path = os.path.join(out_dir, f"population_facet_scatter_{scenario_target}.png")
+    
+    print(f"Generando gráfico de dispersión en facetas...")
+    PlotterPopulation.plot_poblacion_facet_scatter(global_data, fig_path, scenario_name=scenario_target.capitalize(), mass_threshold=0.1)
+    input("\nPresione Enter para volver al menú principal...")
+
+
+def run_population_bars():
+    clear_screen()
+    print("=====================================================")
+    print("        ESTADÍSTICAS POBLACIONALES (Barras)          ")
+    print("=====================================================")
+    
+    base_data = "data/runs"
+    vfrags = ['1', '3', '10']
+    
+    import os, pickle, glob, re
+    scenarios_found = set()
+    exclude_scenarios = ['rounded']
+    for vf in vfrags:
+        vf_path = os.path.join(base_data, f"vf_{vf}ms")
+        if os.path.isdir(vf_path):
+            for s in os.listdir(vf_path):
+                if os.path.isdir(os.path.join(vf_path, s)) and s not in exclude_scenarios:
+                    scenarios_found.add(s)
+                    
+    if not scenarios_found: return
+    s_list = sorted(list(scenarios_found))
+    s_options = {str(i+1): s for i, s in enumerate(s_list)}
+    s_choice = get_choice("Seleccione el escenario:", s_options, allow_back=True)
+    if s_choice == '0': return
+    scenario_target = s_options[s_choice]
+    
+    import pandas as pd
+    csv_path = "data/summary_master_todos_casos.csv"
+    if not os.path.exists(csv_path):
+        print(f"Error: No se encontró la tabla compilada en {csv_path}.")
+        input("Presione Enter...")
+        return
+        
+    df_master = pd.read_csv(csv_path, encoding='utf-8')
+    global_data = df_master[df_master['scenario'].str.lower() == scenario_target.lower()].copy()
+    if global_data.empty:
+        print(f"No hay datos compilados para el escenario {scenario_target}.")
+        input("Presione Enter...")
+        return
+    
+    from pipeline_analysis.plotters import PlotterPopulation
+    out_dir = "data/figures/benchmarks/estadisticas_poblacionales"
+    os.makedirs(out_dir, exist_ok=True)
+    fig_path = os.path.join(out_dir, f"population_bars_{scenario_target}.png")
+    
+    print(f"Generando barras poblacionales...")
+    PlotterPopulation.plot_poblacion_barras_apiladas(global_data, fig_path, scenario_name=scenario_target.capitalize())
+    input("\nPresione Enter para volver al menú principal...")
+
+
+def run_population_grid():
+    clear_screen()
+    print("=====================================================")
+    print("        GRILLA CUANTITATIVA (Matriz Heatmap)         ")
+    print("=====================================================")
+    
+    base_data = "data/runs"
+    vfrags = ['1', '3', '10']
+    
+    import os, pickle, glob, re
+    import numpy as np
+    scenarios_found = set()
+    exclude_scenarios = ['rounded']
+    for vf in vfrags:
+        vf_path = os.path.join(base_data, f"vf_{vf}ms")
+        if os.path.isdir(vf_path):
+            for s in os.listdir(vf_path):
+                if os.path.isdir(os.path.join(vf_path, s)) and s not in exclude_scenarios:
+                    scenarios_found.add(s)
+                    
+    if not scenarios_found: return
+    s_list = sorted(list(scenarios_found))
+    s_options = {str(i+1): s for i, s in enumerate(s_list)}
+    s_choice = get_choice("Seleccione el escenario:", s_options, allow_back=True)
+    if s_choice == '0': return
+    scenario_target = s_options[s_choice]
+    
+    import pandas as pd
+    csv_path = "data/summary_master_todos_casos.csv"
+    if not os.path.exists(csv_path):
+        print(f"Error: No se encontró la tabla compilada en {csv_path}.")
+        input("Presione Enter...")
+        return
+        
+    df_master = pd.read_csv(csv_path, encoding='utf-8')
+    global_data = df_master[df_master['scenario'].str.lower() == scenario_target.lower()].copy()
+    if global_data.empty:
+        print(f"No hay datos compilados para el escenario {scenario_target}.")
+        input("Presione Enter...")
+        return
+    
+    from pipeline_analysis.plotters import PlotterPopulation
+    out_dir = "data/figures/benchmarks/grilla_cuantitativa"
+    os.makedirs(out_dir, exist_ok=True)
+    
+    m0_values = sorted(global_data['M_emb0'].dropna().unique())
+    
+    # 1. Generar caso General
+    print(f"\nGenerando grilla cuantitativa general (todos los M0)...")
+    fig_path_general = os.path.join(out_dir, f"population_grid_{scenario_target}_general.png")
+    PlotterPopulation.plot_grilla_cuantitativa(global_data, fig_path_general, scenario_name=f"{scenario_target.capitalize()} (General)")
+    
+    # 2. Generar caso por cada M0
+    for m0 in m0_values:
+        print(f"Generando grilla para M0 = {m0:g} M_E...")
+        subset_data = global_data[np.isclose(global_data['M_emb0'], m0)].copy()
+        if subset_data.empty: continue
+        
+        m0_str = f"{m0:g}".replace('.', 'p')
+        fig_path_m0 = os.path.join(out_dir, f"population_grid_{scenario_target}_M0_{m0_str}.png")
+        PlotterPopulation.plot_grilla_cuantitativa(subset_data, fig_path_m0, scenario_name=f"{scenario_target.capitalize()} (M0 = {m0:g} M_E)", save_main=False)
+        
+    print("\n¡Todas las grillas generadas con éxito!")
+    input("Presione Enter para volver al menú principal...")
+
 def main():
+
+
 
     v_frags = {'1': '1 m/s', '2': '3 m/s', '3': '10 m/s'}
     v_frag_map = {'1': 1, '2': 3, '3': 10}
     
     alphas_full = {
-        '1': '0.0001', '2': '0.0005', '3': '0.001', 
-        '4': '0.003', '5': '0.005', '6': '0.01'
+        '1': '0.0001', '2': '0.0003', '3': '0.0005', '4': '0.0007',
+        '5': '0.001', '6': '0.003', '7': '0.005', '8': '0.01'
     }
     
     m0_options = {
@@ -224,7 +433,12 @@ def main():
             '0': 'PROCESAR TODO (Lote automático)', 
             **v_frags, 
             '4': 'Money Plot (Población Sintética Global)',
-            '5': 'Figura 4 (Física Oculta: f_post para casos estructurados)'
+            '5': 'Figura 4 (Física Oculta: f_post para casos estructurados)',
+            '6': 'Panel Conceptual (Gráfico Único Representativo)',
+            '7': 'Estadísticas Poblacionales (Barras Apiladas)',
+            '8': 'Grilla Cuantitativa (Matriz Numérica de Porcentajes)',
+            '9': 'Gráficos de Dispersión en Facetas (Facet Grid Scatter)',
+            '10': 'Compilar / Actualizar Base de Datos (CSV)'
         }
         v_choice = get_choice("Seleccione una opción de v_frag:", v_frags_with_all, allow_back=False)
         if v_choice == '4':
@@ -232,6 +446,24 @@ def main():
             continue
         elif v_choice == '5':
             run_fpost_analysis()
+            continue
+        elif v_choice == '6':
+            run_population_single()
+            continue
+        elif v_choice == '7':
+            run_population_bars()
+            continue
+        elif v_choice == '8':
+            run_population_grid()
+            continue
+        elif v_choice == '9':
+            run_population_facet_scatter()
+            continue
+        elif v_choice == '10':
+            from compilar_tabla_global import compilar_tabla_maestra
+            print("\nCompilando...")
+            compilar_tabla_maestra()
+            input("\nPresione Enter para volver al menú principal...")
             continue
             
         if v_choice == '0':
@@ -449,9 +681,9 @@ def run_analysis_multiple(v_val, a_val, s_name, m_keys, m0_map, m0_names, batch_
         
         # Select Analyzer based on scenario
         if s_name == 'sinusoidal':
-            analyzer = SinusoidalAnalyzer(runs_path, cache_path, m0_val)
+            analyzer = SinusoidalAnalyzer(runs_path, cache_path, m0_val, alpha_val=a_val)
         elif s_name == 'delayed':
-            analyzer = DelayedAnalyzer(runs_path, cache_path, m0_val)
+            analyzer = DelayedAnalyzer(runs_path, cache_path, m0_val, alpha_val=a_val)
         elif s_name == 'smooth':
             analyzer = SmoothAnalyzer(runs_path, cache_path, m0_val, alpha_val=a_val)
         else:
