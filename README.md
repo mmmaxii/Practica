@@ -8,13 +8,13 @@ A continuación se presenta un mapa de los directorios y archivos principales de
 .
 ├── Primeros acercamientos y archivos antiguos/  ---- Códigos iniciales y versiones antiguas (como PebbleAccretion 1 y 2).
 │
+│
 ├── informe_practica/                            ---- Código fuente en LaTeX para el informe final de práctica.
 │   ├── chapters/                                ---- Capítulos individuales del informe en formato .tex.
 │   ├── figures/                                 ---- Gráficos, diagramas y mosaicos usados en el documento.
 │   ├── main.tex                                 ---- Archivo principal de LaTeX para compilar todo el informe.
 │   └── biblio.bib                               ---- Referencias bibliográficas.
 │
-├── extracted_papers.json                        ---- Base de datos extraída sobre literatura relevante (metadata).
 │
 └── codigos/                                     ---- Directorio principal del desarrollo del modelo físico.
     │
@@ -37,7 +37,7 @@ A continuación se presenta un mapa de los directorios y archivos principales de
     │   ├── geryon/                              ---- Scripts "lanzadores" y "simuladores" para correr código en el clúster Geryon.
     │   └── Post oka and hartmann/               ---- Pruebas específicas para reproducir resultados de modelos teóricos previos.
     │
-    ├── pipeline_snowlines.py                    ---- Script orquestador principal que corre las simulaciones de evolución del disco.
+    ├── pipeline_snowlines.py                    ---- Script principal que corre las simulaciones de evolución del disco.
     ├── generar_benchmarks.py                    ---- Genera los casos base de simulación (smooth, gaps, etc.).
     ├── generar_mosaicos_paper.py                ---- Ensambla gráficos compuestos (mosaicos) para usarlos directamente en el informe.
     │
