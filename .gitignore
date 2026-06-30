@@ -7,7 +7,6 @@ codigos/tools
 codigos/data/runs/
 C:\astro\Codigos practica + docs + papers\codigos\scratch\Pre oka and hartmann
 codigos/doc_standar_model.txt
-codigos/PACC_versionchatgpt.py
 codigos/PebbleAccretion_docs.md 
 codigos/PebbleAccretion.py
 codigos\scratch\add_grid_menu.py
@@ -20,7 +19,6 @@ codigos/data_postpost_pipeline
 codigos/all
 C:\astro\Codigos practica + docs + papers\codigos\scratch\check_cache.py
 codigos/data_gaps_pipeline
-
 codigos/pipeline_analysis
 codigos/docs
 codigos/disk_visualizer
